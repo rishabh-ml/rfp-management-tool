@@ -12,7 +12,6 @@ interface TagsManagerClientProps {
 }
 
 export function TagsManagerClient({ initialTags }: TagsManagerClientProps) {
-  // TODO: Implement full CRUD functionality
   
   if (initialTags.length === 0) {
     return (

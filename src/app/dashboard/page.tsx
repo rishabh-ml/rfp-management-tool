@@ -8,7 +8,6 @@ import {
   BarChart3,
   Users,
   FolderOpen,
-  Clock,
   TrendingUp,
   AlertTriangle,
   CheckCircle,

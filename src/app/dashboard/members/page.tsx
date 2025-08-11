@@ -1,11 +1,11 @@
 import { Suspense } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+// Badge import removed - not used in this component
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { UserService } from '@/lib/services/user-service'
 import { Users, Plus, Shield, UserCheck, Settings } from 'lucide-react'
-import Link from 'next/link'
+// Link import removed - not used in this component
 import { MembersTable } from '@/components/members/members-table'
 import { RolePermissionsMatrix } from '@/components/members/role-permissions-matrix'
 

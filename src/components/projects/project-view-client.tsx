@@ -1,16 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { List, CalendarDays, BarChart3, Search, Filter, SortAsc } from 'lucide-react'
 import { ProjectListView } from './project-list-view'
 import { ProjectCalendarView } from './project-calendar-view'
 import { ProjectGanttView } from './project-gantt-view'
-import type { ProjectWithDetails } from '@/lib/types'
+import { ProjectFilters, type ProjectFilters as ProjectFiltersType, type SortOptions } from './project-filters'
+// Remove server-side imports - data will be passed as props
+import type { ProjectWithDetails, User, Tag } from '@/lib/types'
 
 type ViewType = 'list' | 'calendar' | 'gantt'
 
@@ -22,22 +24,128 @@ const views = [
 
 interface ProjectViewClientProps {
   projects: ProjectWithDetails[]
+  users: User[]
+  tags: Tag[]
 }
 
-export function ProjectViewClient({ projects }: ProjectViewClientProps) {
+export function ProjectViewClient({ projects, users, tags }: ProjectViewClientProps) {
   const [currentView, setCurrentView] = useState<ViewType>('list')
+  const [filters, setFilters] = useState<ProjectFiltersType>({})
+  const [sortOptions, setSortOptions] = useState<SortOptions>({
+    field: 'updated_at',
+    direction: 'desc'
+  })
+  const [filteredProjects, setFilteredProjects] = useState<ProjectWithDetails[]>(projects)
   const [searchQuery, setSearchQuery] = useState('')
-  const [stageFilter, setStageFilter] = useState<string>('all')
-  const [priorityFilter, setPriorityFilter] = useState<string>('all')
-  const [sortBy, setSortBy] = useState<string>('updated_at')
+  const [stageFilter, setStageFilter] = useState('all')
+  const [priorityFilter, setPriorityFilter] = useState('all')
+  const [sortBy, setSortBy] = useState('updated_at')
+
+  useEffect(() => {
+    // Apply filters and sorting
+    let filtered = [...projects]
+
+    // Apply search filter
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase()
+      filtered = filtered.filter(project =>
+        project.title.toLowerCase().includes(searchLower) ||
+        project.description?.toLowerCase().includes(searchLower)
+      )
+    }
+
+    // Apply stage filter
+    if (stageFilter !== 'all') {
+      filtered = filtered.filter(project => project.stage === stageFilter)
+    }
+
+    // Apply priority filter
+    if (priorityFilter !== 'all') {
+      filtered = filtered.filter(project => project.priority === priorityFilter)
+    }
+
+    if (filters.stage) {
+      filtered = filtered.filter(project => project.stage === filters.stage)
+    }
+
+    if (filters.priority) {
+      filtered = filtered.filter(project => project.priority === filters.priority)
+    }
+
+    if (filters.owner_id) {
+      filtered = filtered.filter(project => project.owner_id === filters.owner_id)
+    }
+
+    if (filters.tags && filters.tags.length > 0) {
+      filtered = filtered.filter(project =>
+        project.tags?.some(tag => filters.tags!.includes(tag.id))
+      )
+    }
+
+    if (filters.due_date_from) {
+      filtered = filtered.filter(project =>
+        project.due_date && new Date(project.due_date) >= filters.due_date_from!
+      )
+    }
+
+    if (filters.due_date_to) {
+      filtered = filtered.filter(project =>
+        project.due_date && new Date(project.due_date) <= filters.due_date_to!
+      )
+    }
+
+    if (filters.is_overdue) {
+      filtered = filtered.filter(project =>
+        project.due_date && new Date(project.due_date) < new Date() && project.stage !== 'completed'
+      )
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: any = a[sortBy as keyof ProjectWithDetails]
+      let bValue: any = b[sortBy as keyof ProjectWithDetails]
+
+      // Handle special cases
+      if (sortBy === 'priority') {
+        const priorityOrder = { low: 1, medium: 2, high: 3, urgent: 4 }
+        aValue = priorityOrder[a.priority as keyof typeof priorityOrder] || 0
+        bValue = priorityOrder[b.priority as keyof typeof priorityOrder] || 0
+      }
+
+      if (aValue === null || aValue === undefined) aValue = ''
+      if (bValue === null || bValue === undefined) bValue = ''
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        aValue = aValue.toLowerCase()
+        bValue = bValue.toLowerCase()
+      }
+
+      if (aValue < bValue) return sortOptions.direction === 'asc' ? -1 : 1
+      if (aValue > bValue) return sortOptions.direction === 'asc' ? 1 : -1
+      return 0
+    })
+
+    setFilteredProjects(filtered)
+  }, [projects, filters, sortOptions, searchQuery, stageFilter, priorityFilter, sortBy])
 
   const renderCurrentView = () => {
     const commonProps = {
-      projects,
-      searchQuery,
-      stageFilter,
-      priorityFilter,
-      sortBy
+      projects: filteredProjects
+    }
+
+    // Show empty state if no projects
+    if (filteredProjects.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium text-muted-foreground mb-2">No projects found</h3>
+          <p className="text-sm text-muted-foreground">
+            {projects.length === 0
+              ? "Get started by creating your first project"
+              : "Try adjusting your filters to see more projects"
+            }
+          </p>
+        </div>
+      )
     }
 
     switch (currentView) {
@@ -50,6 +158,14 @@ export function ProjectViewClient({ projects }: ProjectViewClientProps) {
       default:
         return <ProjectListView {...commonProps} />
     }
+  }
+
+  const handleClearFilters = () => {
+    setFilters({})
+    setSearchQuery('')
+    setStageFilter('all')
+    setPriorityFilter('all')
+    setSortBy('updated_at')
   }
 
   return (
@@ -135,13 +251,24 @@ export function ProjectViewClient({ projects }: ProjectViewClientProps) {
         </div>
       </div>
 
+      {/* Advanced Filters */}
+      <ProjectFilters
+        filters={filters}
+        sortOptions={sortOptions}
+        users={users}
+        tags={tags}
+        onFiltersChange={setFilters}
+        onSortChange={setSortOptions}
+        onClearFilters={handleClearFilters}
+      />
+
       {/* Active Filters */}
       {(stageFilter !== 'all' || priorityFilter !== 'all' || searchQuery) && (
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm text-muted-foreground">Active filters:</span>
           {searchQuery && (
             <Badge variant="secondary" className="gap-1">
-              Search: "{searchQuery}"
+              Search: &ldquo;{searchQuery}&rdquo;
               <button
                 onClick={() => setSearchQuery('')}
                 className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
@@ -179,6 +306,7 @@ export function ProjectViewClient({ projects }: ProjectViewClientProps) {
               setSearchQuery('')
               setStageFilter('all')
               setPriorityFilter('all')
+              setSortBy('updated_at')
             }}
             className="h-6 px-2 text-xs"
           >

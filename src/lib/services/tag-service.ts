@@ -13,120 +13,23 @@ export class TagService {
         .from('tags')
         .select(`
           *,
-          creator:users!tags_created_by_fkey(id, first_name, last_name, email, avatar_url)
+          creator:users(id, first_name, last_name, email, avatar_url)
         `)
         .order('name', { ascending: true })
 
       if (error) {
         console.error('Error fetching tags:', error)
-        return this.getMockTags()
+        return []
       }
 
-      return data || this.getMockTags()
+      return data || []
     } catch (error) {
       console.error('Error in getTags:', error)
-      return this.getMockTags()
+      return []
     }
   }
 
-  /**
-   * Get mock tags for development
-   * TODO: Remove once database is properly set up
-   */
-  private static getMockTags(): TagWithCreator[] {
-    return [
-      {
-        id: '1',
-        name: 'Web Development',
-        color: '#3B82F6',
-        created_by: '1',
-        created_at: '2024-01-01T00:00:00.000Z',
-        creator: {
-          id: '1',
-          clerk_id: 'user_admin',
-          email: 'admin@company.com',
-          first_name: 'Alice',
-          last_name: 'Admin',
-          avatar_url: null,
-          role: 'admin',
-          created_at: '2024-01-01T00:00:00.000Z',
-          updated_at: '2024-01-01T00:00:00.000Z'
-        }
-      },
-      {
-        id: '2',
-        name: 'Mobile App',
-        color: '#10B981',
-        created_by: '1',
-        created_at: '2024-01-01T00:00:00.000Z',
-        creator: {
-          id: '1',
-          clerk_id: 'user_admin',
-          email: 'admin@company.com',
-          first_name: 'Alice',
-          last_name: 'Admin',
-          avatar_url: null,
-          role: 'admin',
-          created_at: '2024-01-01T00:00:00.000Z',
-          updated_at: '2024-01-01T00:00:00.000Z'
-        }
-      },
-      {
-        id: '3',
-        name: 'E-commerce',
-        color: '#F59E0B',
-        created_by: '2',
-        created_at: '2024-01-01T00:00:00.000Z',
-        creator: {
-          id: '2',
-          clerk_id: 'user_manager',
-          email: 'manager@company.com',
-          first_name: 'Bob',
-          last_name: 'Manager',
-          avatar_url: null,
-          role: 'manager',
-          created_at: '2024-01-01T00:00:00.000Z',
-          updated_at: '2024-01-01T00:00:00.000Z'
-        }
-      },
-      {
-        id: '4',
-        name: 'Enterprise',
-        color: '#8B5CF6',
-        created_by: '2',
-        created_at: '2024-01-01T00:00:00.000Z',
-        creator: {
-          id: '2',
-          clerk_id: 'user_manager',
-          email: 'manager@company.com',
-          first_name: 'Bob',
-          last_name: 'Manager',
-          avatar_url: null,
-          role: 'manager',
-          created_at: '2024-01-01T00:00:00.000Z',
-          updated_at: '2024-01-01T00:00:00.000Z'
-        }
-      },
-      {
-        id: '5',
-        name: 'Urgent',
-        color: '#EF4444',
-        created_by: '1',
-        created_at: '2024-01-01T00:00:00.000Z',
-        creator: {
-          id: '1',
-          clerk_id: 'user_admin',
-          email: 'admin@company.com',
-          first_name: 'Alice',
-          last_name: 'Admin',
-          avatar_url: null,
-          role: 'admin',
-          created_at: '2024-01-01T00:00:00.000Z',
-          updated_at: '2024-01-01T00:00:00.000Z'
-        }
-      }
-    ]
-  }
+  // Mock methods removed for production
 
   /**
    * Get tag by ID
@@ -139,7 +42,7 @@ export class TagService {
         .from('tags')
         .select(`
           *,
-          creator:users!tags_created_by_fkey(id, first_name, last_name, email, avatar_url)
+          creator:users(id, first_name, last_name, email, avatar_url)
         `)
         .eq('id', tagId)
         .single()

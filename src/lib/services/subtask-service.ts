@@ -13,8 +13,8 @@ export class SubtaskService {
         .from('subtasks')
         .select(`
           *,
-          assignee:users!subtasks_assigned_to_fkey(id, first_name, last_name, email, avatar_url, role),
-          creator:users!subtasks_created_by_fkey(id, first_name, last_name, email, avatar_url, role)
+          assignee:users!assigned_to(id, first_name, last_name, email, avatar_url, role),
+          creator:users!created_by(id, first_name, last_name, email, avatar_url, role)
         `)
         .eq('project_id', projectId)
         .order('created_at', { ascending: true })
@@ -42,8 +42,8 @@ export class SubtaskService {
         .from('subtasks')
         .select(`
           *,
-          assignee:users!subtasks_assigned_to_fkey(id, first_name, last_name, email, avatar_url, role),
-          creator:users!subtasks_created_by_fkey(id, first_name, last_name, email, avatar_url, role),
+          assignee:users!assigned_to(id, first_name, last_name, email, avatar_url, role),
+          creator:users!created_by(id, first_name, last_name, email, avatar_url, role),
           project:projects(id, title)
         `)
         .eq('id', subtaskId)
@@ -73,56 +73,24 @@ export class SubtaskService {
         .insert(subtaskData)
         .select(`
           *,
-          assignee:users!subtasks_assigned_to_fkey(id, first_name, last_name, email, avatar_url, role),
-          creator:users!subtasks_created_by_fkey(id, first_name, last_name, email, avatar_url, role)
+          assignee:users!assigned_to(id, first_name, last_name, email, avatar_url, role),
+          creator:users!created_by(id, first_name, last_name, email, avatar_url, role)
         `)
         .single()
 
       if (error) {
         console.error('Error creating subtask:', error)
-        // Return mock subtask for demo purposes
-        return this.createMockSubtask(subtaskData)
+        return null
       }
 
       return data
     } catch (error) {
       console.error('Error in createSubtask:', error)
-      // Return mock subtask for demo purposes
-      return this.createMockSubtask(subtaskData)
+      return null
     }
   }
 
-  /**
-   * Create a mock subtask for demo purposes
-   * TODO: Remove once database is properly set up
-   */
-  private static createMockSubtask(subtaskData: SubtaskInsert): SubtaskWithUser {
-    const now = new Date().toISOString()
-    return {
-      id: `subtask_${Date.now()}`,
-      project_id: subtaskData.project_id,
-      title: subtaskData.title,
-      description: subtaskData.description || null,
-      assigned_to: subtaskData.assigned_to || null,
-      completed: false,
-      due_date: subtaskData.due_date || null,
-      created_by: subtaskData.created_by || null,
-      created_at: now,
-      updated_at: now,
-      assignee: null,
-      creator: subtaskData.created_by ? {
-        id: subtaskData.created_by,
-        clerk_id: 'demo_user',
-        email: 'demo@example.com',
-        first_name: 'Demo',
-        last_name: 'User',
-        avatar_url: null,
-        role: 'member',
-        created_at: now,
-        updated_at: now
-      } : null
-    }
-  }
+  // Mock methods removed for production
 
   /**
    * Update a subtask
@@ -137,56 +105,24 @@ export class SubtaskService {
         .eq('id', subtaskId)
         .select(`
           *,
-          assignee:users!subtasks_assigned_to_fkey(id, first_name, last_name, email, avatar_url, role),
-          creator:users!subtasks_created_by_fkey(id, first_name, last_name, email, avatar_url, role)
+          assignee:users!assigned_to(id, first_name, last_name, email, avatar_url, role),
+          creator:users!created_by(id, first_name, last_name, email, avatar_url, role)
         `)
         .single()
 
       if (error) {
         console.error('Error updating subtask:', error)
-        // Return mock updated subtask for demo purposes
-        return this.createMockUpdatedSubtask(subtaskId, updates)
+        return null
       }
 
       return data
     } catch (error) {
       console.error('Error in updateSubtask:', error)
-      // Return mock updated subtask for demo purposes
-      return this.createMockUpdatedSubtask(subtaskId, updates)
+      return null
     }
   }
 
-  /**
-   * Create a mock updated subtask for demo purposes
-   * TODO: Remove once database is properly set up
-   */
-  private static createMockUpdatedSubtask(subtaskId: string, updates: SubtaskUpdate): SubtaskWithUser {
-    const now = new Date().toISOString()
-    return {
-      id: subtaskId,
-      project_id: 'demo_project',
-      title: 'Demo Subtask',
-      description: null,
-      assigned_to: null,
-      completed: updates.completed ?? false,
-      due_date: null,
-      created_by: 'demo_user',
-      created_at: now,
-      updated_at: now,
-      assignee: null,
-      creator: {
-        id: 'demo_user',
-        clerk_id: 'demo_user',
-        email: 'demo@example.com',
-        first_name: 'Demo',
-        last_name: 'User',
-        avatar_url: null,
-        role: 'member',
-        created_at: now,
-        updated_at: now
-      }
-    }
-  }
+  // Mock methods removed for production
 
   /**
    * Toggle subtask completion
@@ -214,8 +150,8 @@ export class SubtaskService {
         .eq('id', subtaskId)
         .select(`
           *,
-          assignee:users!subtasks_assigned_to_fkey(id, first_name, last_name, email, avatar_url, role),
-          creator:users!subtasks_created_by_fkey(id, first_name, last_name, email, avatar_url, role)
+          assignee:users!assigned_to(id, first_name, last_name, email, avatar_url, role),
+          creator:users!created_by(id, first_name, last_name, email, avatar_url, role)
         `)
         .single()
 
@@ -266,8 +202,8 @@ export class SubtaskService {
         .from('subtasks')
         .select(`
           *,
-          assignee:users!subtasks_assigned_to_fkey(id, first_name, last_name, email, avatar_url, role),
-          creator:users!subtasks_created_by_fkey(id, first_name, last_name, email, avatar_url, role),
+          assignee:users!assigned_to(id, first_name, last_name, email, avatar_url, role),
+          creator:users!created_by(id, first_name, last_name, email, avatar_url, role),
           project:projects(id, title, stage)
         `)
         .eq('assigned_to', userId)
@@ -302,8 +238,8 @@ export class SubtaskService {
         .from('subtasks')
         .select(`
           *,
-          assignee:users!subtasks_assigned_to_fkey(id, first_name, last_name, email, avatar_url, role),
-          creator:users!subtasks_created_by_fkey(id, first_name, last_name, email, avatar_url, role),
+          assignee:users!assigned_to(id, first_name, last_name, email, avatar_url, role),
+          creator:users!created_by(id, first_name, last_name, email, avatar_url, role),
           project:projects(id, title, stage)
         `)
         .eq('completed', false)
@@ -343,8 +279,8 @@ export class SubtaskService {
         .from('subtasks')
         .select(`
           *,
-          assignee:users!subtasks_assigned_to_fkey(id, first_name, last_name, email, avatar_url, role),
-          creator:users!subtasks_created_by_fkey(id, first_name, last_name, email, avatar_url, role),
+          assignee:users!assigned_to(id, first_name, last_name, email, avatar_url, role),
+          creator:users!created_by(id, first_name, last_name, email, avatar_url, role),
           project:projects(id, title, stage)
         `)
         .eq('completed', false)

@@ -81,7 +81,7 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
 
 # JWT Configuration for Supabase-Clerk Integration
-SUPABASE_JWT_SECRET=your_supabase_jwt_secret
+# No shared JWT secret required when using Clerk TPA (RS256)
 ```
 
 ### 4. Database Setup

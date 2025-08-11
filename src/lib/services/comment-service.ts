@@ -76,44 +76,17 @@ export class CommentService {
 
       if (error) {
         console.error('Error creating comment:', error)
-        // Return mock comment for demo purposes
-        return this.createMockComment(commentData)
+        return null
       }
 
       return data
     } catch (error) {
       console.error('Error in createComment:', error)
-      // Return mock comment for demo purposes
-      return this.createMockComment(commentData)
+      return null
     }
   }
 
-  /**
-   * Create a mock comment for demo purposes
-   * TODO: Remove once database is properly set up
-   */
-  private static createMockComment(commentData: CommentInsert): CommentWithUser {
-    const now = new Date().toISOString()
-    return {
-      id: `comment_${Date.now()}`,
-      project_id: commentData.project_id,
-      user_id: commentData.user_id,
-      content: commentData.content,
-      created_at: now,
-      updated_at: now,
-      user: {
-        id: commentData.user_id,
-        clerk_id: 'demo_user',
-        email: 'demo@example.com',
-        first_name: 'Demo',
-        last_name: 'User',
-        avatar_url: null,
-        role: 'member',
-        created_at: now,
-        updated_at: now
-      }
-    }
-  }
+  // Mock methods removed for production
 
   /**
    * Update a comment

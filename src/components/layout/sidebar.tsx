@@ -40,8 +40,13 @@ const navigation = [
     name: 'Open Items',
     href: '/dashboard/open-items',
     icon: AlertCircle,
-    description: 'Tasks requiring attention',
-    badge: 3 // TODO: Make this dynamic
+    description: 'Tasks requiring attention'
+  },
+  {
+    name: 'Custom Attributes',
+    href: '/dashboard/custom-attributes',
+    icon: Settings,
+    description: 'Manage custom fields'
   },
   {
     name: 'Members & Roles',

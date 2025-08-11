@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,12 +13,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DatePicker } from '@/components/ui/date-picker'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { ProjectService } from '@/lib/services/project-service'
-import { UserService } from '@/lib/services/user-service'
+// Remove server-side imports - using API routes instead
 import { PROJECT_PRIORITIES } from '@/lib/constants'
 import { toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { useUser } from '@clerk/nextjs'
 
 const projectSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(200, 'Title must be less than 200 characters'),
@@ -32,8 +32,25 @@ type ProjectFormData = z.infer<typeof projectSchema>
 
 export default function NewProjectPage() {
   const router = useRouter()
+  const { user } = useUser()
   const [isLoading, setIsLoading] = useState(false)
-  const [users] = useState<Array<{ id: string; first_name: string; last_name: string; email: string }>>([])
+  const [users, setUsers] = useState<Array<{ id: string; first_name: string; last_name: string; email: string }>>([])
+
+  // Load users for assignment dropdown
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        const response = await fetch('/api/users')
+        if (response.ok) {
+          const usersData = await response.json()
+          setUsers(usersData)
+        }
+      } catch (error) {
+        console.error('Error loading users:', error)
+      }
+    }
+    loadUsers()
+  }, [])
 
   const {
     register,
@@ -67,8 +84,8 @@ export default function NewProjectPage() {
         description: data.description || null,
         priority: data.priority,
         due_date: data.due_date?.toISOString() || null,
-        owner_id: data.owner_id || null,
-        stage: data.owner_id ? 'assigned' as const : 'unassigned' as const
+        owner_id: data.owner_id || user?.id || '', // Use current user as fallback
+        stage: 'assigned' as const // Always assigned since owner_id is required
       }
 
       // Create project via API
@@ -81,7 +98,9 @@ export default function NewProjectPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create project')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('API Error:', errorData)
+        throw new Error(errorData.error || `Failed to create project (${response.status})`)
       }
 
       const project = await response.json()
@@ -89,7 +108,8 @@ export default function NewProjectPage() {
       router.push(`/dashboard/projects/${project.id}`)
     } catch (error) {
       console.error('Error creating project:', error)
-      toast.error('An error occurred while creating the project.')
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while creating the project.'
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -194,15 +214,15 @@ export default function NewProjectPage() {
             <div className="space-y-2">
               <Label>Assign To</Label>
               <Select
-                value={watch('owner_id') || ''}
-                onValueChange={(value) => setValue('owner_id', value || undefined)}
+                value={watch('owner_id') || 'unassigned'}
+                onValueChange={(value) => setValue('owner_id', value === 'unassigned' ? undefined : value)}
                 disabled={isLoading}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select team member (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Unassigned</SelectItem>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
                   {users.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.first_name} {user.last_name} ({user.email})

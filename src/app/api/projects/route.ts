@@ -5,10 +5,10 @@ import { z } from 'zod'
 
 const createProjectSchema = z.object({
   title: z.string().min(3).max(200),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']),
-  due_date: z.string().optional(),
-  owner_id: z.string().optional(),
+  due_date: z.string().optional().nullable(),
+  owner_id: z.string().min(1), // Required in database schema
   stage: z.enum(['unassigned', 'assigned', 'submitted', 'skipped', 'won', 'lost']).optional()
 })
 
@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
       ...projectData,
       description: projectData.description || null,
       due_date: projectData.due_date || null,
-      owner_id: projectData.owner_id || null,
-      stage: projectData.stage || (projectData.owner_id ? 'assigned' : 'unassigned')
+      owner_id: projectData.owner_id, // Now required
+      stage: projectData.stage || 'assigned' // Default to assigned since owner_id is required
     })
 
     if (!project) {
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check authentication
     const { userId } = await auth()

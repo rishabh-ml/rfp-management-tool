@@ -23,48 +23,22 @@ export class UserService {
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('clerk_id', clerkUser.id)
+        .eq('id', clerkUser.id)
         .single()
 
       if (error) {
         console.error('Error fetching current user from database:', error)
-        // Return a mock user based on Clerk data if database query fails
-        return this.createMockUserFromClerk(clerkUser)
+        throw new Error('Failed to fetch user from database')
       }
 
       return data
     } catch (error) {
       console.error('Error in getCurrentUser:', error)
-      // Try to get Clerk user and create mock user
-      try {
-        const clerkUser = await currentUser()
-        if (clerkUser) {
-          return this.createMockUserFromClerk(clerkUser)
-        }
-      } catch (clerkError) {
-        console.error('Error getting Clerk user:', clerkError)
-      }
       return null
     }
   }
 
-  /**
-   * Create a mock user from Clerk user data
-   * TODO: Remove this once database sync is working properly
-   */
-  private static createMockUserFromClerk(clerkUser: any): User {
-    return {
-      id: clerkUser.id,
-      clerk_id: clerkUser.id,
-      email: clerkUser.emailAddresses?.[0]?.emailAddress || 'user@example.com',
-      first_name: clerkUser.firstName || 'Demo',
-      last_name: clerkUser.lastName || 'User',
-      avatar_url: clerkUser.imageUrl || null,
-      role: 'member',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  }
+  // Mock methods removed for production
 
   /**
    * Get user by ID
@@ -105,68 +79,17 @@ export class UserService {
 
       if (error) {
         console.error('Error fetching all users:', error)
-        return this.getMockUsers()
+        return []
       }
 
-      return data || this.getMockUsers()
+      return data || []
     } catch (error) {
       console.error('Error in getAllUsers:', error)
-      return this.getMockUsers()
+      return []
     }
   }
 
-  /**
-   * Get mock users for development
-   * TODO: Remove once database is properly set up
-   */
-  private static getMockUsers(): User[] {
-    return [
-      {
-        id: '1',
-        clerk_id: 'user_admin',
-        email: 'admin@company.com',
-        first_name: 'Alice',
-        last_name: 'Admin',
-        avatar_url: null,
-        role: 'admin',
-        created_at: '2024-01-01T00:00:00.000Z',
-        updated_at: '2024-01-01T00:00:00.000Z'
-      },
-      {
-        id: '2',
-        clerk_id: 'user_manager',
-        email: 'manager@company.com',
-        first_name: 'Bob',
-        last_name: 'Manager',
-        avatar_url: null,
-        role: 'manager',
-        created_at: '2024-01-01T00:00:00.000Z',
-        updated_at: '2024-01-01T00:00:00.000Z'
-      },
-      {
-        id: '3',
-        clerk_id: 'user_member1',
-        email: 'john@company.com',
-        first_name: 'John',
-        last_name: 'Developer',
-        avatar_url: null,
-        role: 'member',
-        created_at: '2024-01-01T00:00:00.000Z',
-        updated_at: '2024-01-01T00:00:00.000Z'
-      },
-      {
-        id: '4',
-        clerk_id: 'user_member2',
-        email: 'sarah@company.com',
-        first_name: 'Sarah',
-        last_name: 'Designer',
-        avatar_url: null,
-        role: 'member',
-        created_at: '2024-01-01T00:00:00.000Z',
-        updated_at: '2024-01-01T00:00:00.000Z'
-      }
-    ]
-  }
+  // Mock methods removed for production
 
   /**
    * Update user profile
@@ -200,16 +123,16 @@ export class UserService {
   static async upsertUser(clerkId: string, userData: Partial<UserInsert>): Promise<User | null> {
     try {
       const supabase = await createClerkSupabaseClient()
-      
+
       const { data, error } = await supabase
         .from('users')
         .upsert(
           {
-            clerk_id: clerkId,
+            id: clerkId,  // Use id instead of clerk_id
             ...userData,
           },
           {
-            onConflict: 'clerk_id',
+            onConflict: 'id',  // Conflict on id column
           }
         )
         .select()

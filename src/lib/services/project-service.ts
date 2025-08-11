@@ -23,20 +23,17 @@ export class ProjectService {
     try {
       const supabase = await createClerkSupabaseClient()
 
-      // For now, return mock data if we can't connect to the database
-      // TODO: Remove this once database is properly set up
+      // Use real database operations
       if (!supabase) {
-        return this.getMockProjects()
+        console.error('Supabase client creation failed')
+        return []
       }
 
       let query = supabase
         .from('projects')
         .select(`
           *,
-          owner:users!projects_owner_id_fkey(id, first_name, last_name, email, avatar_url),
-          tags:project_tags(tag:tags(id, name, color)),
-          comments:comments(count),
-          subtasks:subtasks(id, completed)
+          owner:users(id, first_name, last_name, email, avatar_url)
         `)
 
       // Apply filters
@@ -77,131 +74,38 @@ export class ProjectService {
       const { data, error } = await query
 
       if (error) {
-        console.error('Error fetching projects:', error)
-        // Return mock data on database error
-        return this.getMockProjects()
+        console.error('Error fetching projects:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          full_error: error
+        })
+        return []
       }
 
-      // Transform the data to include computed fields
-      return (data || []).map(project => ({
-        ...project,
-        tags: project.tags?.map((pt: any) => pt.tag) || [],
-        _count: {
-          comments: project.comments?.length || 0,
-          subtasks: project.subtasks?.length || 0,
-          completed_subtasks: project.subtasks?.filter((st: any) => st.completed).length || 0
-        }
-      }))
-    } catch (error) {
-      console.error('Error in getProjects:', error)
-      // Return mock data on any error
-      return this.getMockProjects()
-    }
-  }
+      // Return simplified data without complex joins
+      if (!data || data.length === 0) {
+        console.log('No projects found in database')
+        return []
+      }
 
-  /**
-   * Get mock projects for development/demo purposes
-   * TODO: Remove this once database is properly configured
-   */
-  private static getMockProjects(): ProjectWithDetails[] {
-    return [
-      {
-        id: '1',
-        title: 'City Council Website Redesign',
-        description: 'Complete redesign of the city council website with modern UI/UX and accessibility features.',
-        stage: 'unassigned',
-        priority: 'high',
-        due_date: '2024-03-15T17:00:00.000Z',
-        owner_id: null,
-        owner: null,
-        progress_percentage: 0,
-        status_notes: null,
-        created_at: '2024-01-15T10:00:00.000Z',
-        updated_at: '2024-01-15T10:00:00.000Z',
-        tags: [
-          { id: '1', name: 'Web Development', color: '#3B82F6', created_by: null, created_at: '2024-01-01T00:00:00.000Z' },
-          { id: '2', name: 'Government', color: '#6B7280', created_by: null, created_at: '2024-01-01T00:00:00.000Z' }
-        ],
-        comments: [],
-        subtasks: [],
+      return data.map(project => ({
+        ...project,
+        tags: [],
         _count: {
           comments: 0,
           subtasks: 0,
           completed_subtasks: 0
         }
-      },
-      {
-        id: '2',
-        title: 'E-commerce Platform for Local Retailer',
-        description: 'Build a comprehensive e-commerce solution with inventory management, payment processing, and customer portal.',
-        stage: 'assigned',
-        priority: 'medium',
-        due_date: '2024-02-28T17:00:00.000Z',
-        owner_id: '1',
-        owner: {
-          id: '1',
-          clerk_id: 'user_123',
-          email: 'john@company.com',
-          first_name: 'John',
-          last_name: 'Developer',
-          avatar_url: null,
-          role: 'member',
-          created_at: '2024-01-01T00:00:00.000Z',
-          updated_at: '2024-01-01T00:00:00.000Z'
-        },
-        progress_percentage: 35,
-        status_notes: 'Initial wireframes completed. Working on database schema and API design.',
-        created_at: '2024-01-10T10:00:00.000Z',
-        updated_at: '2024-01-20T15:30:00.000Z',
-        tags: [
-          { id: '1', name: 'Web Development', color: '#3B82F6', created_by: null, created_at: '2024-01-01T00:00:00.000Z' },
-          { id: '3', name: 'E-commerce', color: '#F59E0B', created_by: null, created_at: '2024-01-01T00:00:00.000Z' }
-        ],
-        comments: [],
-        subtasks: [],
-        _count: {
-          comments: 2,
-          subtasks: 3,
-          completed_subtasks: 1
-        }
-      },
-      {
-        id: '3',
-        title: 'Mobile Banking App MVP',
-        description: 'Develop a minimum viable product for a mobile banking application with core features.',
-        stage: 'submitted',
-        priority: 'urgent',
-        due_date: '2024-02-20T17:00:00.000Z',
-        owner_id: '2',
-        owner: {
-          id: '2',
-          clerk_id: 'user_456',
-          email: 'sarah@company.com',
-          first_name: 'Sarah',
-          last_name: 'Designer',
-          avatar_url: null,
-          role: 'member',
-          created_at: '2024-01-01T00:00:00.000Z',
-          updated_at: '2024-01-01T00:00:00.000Z'
-        },
-        progress_percentage: 100,
-        status_notes: 'Proposal submitted on time. Awaiting client feedback.',
-        created_at: '2024-01-05T10:00:00.000Z',
-        updated_at: '2024-02-18T16:45:00.000Z',
-        tags: [
-          { id: '2', name: 'Mobile App', color: '#10B981', created_by: null, created_at: '2024-01-01T00:00:00.000Z' },
-          { id: '5', name: 'Urgent', color: '#EF4444', created_by: null, created_at: '2024-01-01T00:00:00.000Z' }
-        ],
-        comments: [],
-        subtasks: [],
-        _count: {
-          comments: 1,
-          subtasks: 6,
-          completed_subtasks: 6
-        }
-      }
-    ]
+      }))
+    } catch (error) {
+      console.error('Error in getProjects:', error)
+      return []
+    }
   }
+
+  // Mock methods removed for production
 
   /**
    * Get project by ID with full details
@@ -214,7 +118,7 @@ export class ProjectService {
         .from('projects')
         .select(`
           *,
-          owner:users!projects_owner_id_fkey(id, first_name, last_name, email, avatar_url, role),
+          owner:users!owner_id(id, first_name, last_name, email, avatar_url, role),
           tags:project_tags(tag:tags(id, name, color, created_by)),
           comments:comments(
             id, content, created_at, updated_at,
@@ -222,8 +126,8 @@ export class ProjectService {
           ),
           subtasks:subtasks(
             id, title, description, completed, due_date, created_at, updated_at,
-            assignee:users!subtasks_assigned_to_fkey(id, first_name, last_name, email, avatar_url),
-            creator:users!subtasks_created_by_fkey(id, first_name, last_name, email, avatar_url)
+            assignee:users!assigned_to(id, first_name, last_name, email, avatar_url),
+            creator:users!created_by(id, first_name, last_name, email, avatar_url)
           )
         `)
         .eq('id', projectId)
@@ -261,6 +165,13 @@ export class ProjectService {
     try {
       const supabase = await createClerkSupabaseClient()
 
+      // Ensure we have a valid supabase client
+      if (!supabase) {
+        throw new Error('Database connection failed')
+      }
+
+      console.log('Creating project with data:', projectData)
+
       const { data, error } = await supabase
         .from('projects')
         .insert(projectData)
@@ -268,39 +179,24 @@ export class ProjectService {
         .single()
 
       if (error) {
-        console.error('Error creating project:', error)
-        // Return mock project for demo purposes
-        return this.createMockProject(projectData)
+        console.error('Error creating project:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          full_error: error
+        })
+        throw new Error(`Failed to create project: ${error.message || 'Unknown error'}`)
       }
 
       return data
     } catch (error) {
       console.error('Error in createProject:', error)
-      // Return mock project for demo purposes
-      return this.createMockProject(projectData)
+      throw new Error('Failed to create project')
     }
   }
 
-  /**
-   * Create a mock project for demo purposes
-   * TODO: Remove once database is properly set up
-   */
-  private static createMockProject(projectData: ProjectInsert): Project {
-    const now = new Date().toISOString()
-    return {
-      id: `project_${Date.now()}`,
-      title: projectData.title,
-      description: projectData.description || null,
-      stage: projectData.stage || 'unassigned',
-      priority: projectData.priority || 'medium',
-      due_date: projectData.due_date || null,
-      owner_id: projectData.owner_id || null,
-      progress_percentage: 0,
-      status_notes: null,
-      created_at: now,
-      updated_at: now
-    }
-  }
+  // Mock methods removed for production
 
   /**
    * Update a project
@@ -342,9 +238,9 @@ export class ProjectService {
       // Try to use the database function first
       try {
         const { error } = await supabase.rpc('update_project_stage', {
-          project_uuid: projectId,
-          new_stage: newStage,
-          user_uuid: userId
+          p_project_id: projectId,
+          p_new_stage: newStage,
+          p_actor_id: userId
         })
 
         if (!error) {
@@ -390,9 +286,9 @@ export class ProjectService {
       const supabase = await createClerkSupabaseClient()
       
       const { error } = await supabase.rpc('assign_project', {
-        project_uuid: projectId,
-        assignee_uuid: assigneeId,
-        assigner_uuid: assignerId
+        p_project_id: projectId,
+        p_assignee: assigneeId,
+        p_assigner: assignerId
       })
 
       if (error) {
@@ -422,10 +318,10 @@ export class ProjectService {
       if (userId) {
         // Use the database function for logging
         const { error } = await supabase.rpc('update_project_progress', {
-          project_uuid: projectId,
-          new_progress: progress,
-          status_text: statusNotes || null,
-          user_uuid: userId
+          p_project_id: projectId,
+          p_new_progress: progress,
+          p_status_text: statusNotes || null,
+          p_actor_id: userId
         })
 
         if (error) {

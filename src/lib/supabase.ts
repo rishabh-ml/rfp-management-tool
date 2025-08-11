@@ -8,34 +8,18 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 // Create a Supabase client for client-side operations
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Create a Supabase client with Clerk JWT for server-side operations
+// Create a Supabase client with Clerk JWT for server-side operations using native TPA integration
 export async function createClerkSupabaseClient() {
   try {
     const { getToken } = await auth()
 
-    // Try to get the Clerk JWT token with 'supabase' template
-    let token: string | null = null
-
-    try {
-      token = await getToken({ template: 'supabase' })
-    } catch (error) {
-      console.warn('Supabase JWT template not found in Clerk. Using default token.')
-      // Fallback to default token if 'supabase' template doesn't exist
-      token = await getToken()
-    }
-
-    if (!token) {
-      console.warn('No Clerk token available, using anonymous Supabase client')
-      // Return anonymous client if no token available
-      return createClient(supabaseUrl, supabaseAnonKey)
-    }
-
-    // Create Supabase client with Clerk JWT
+    // Create Supabase client with native TPA integration
+    // This uses the new accessToken() method instead of Authorization headers
     return createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      async accessToken() {
+        // Get the Clerk session token - no custom template needed with TPA
+        const token = await getToken()
+        return token ?? null
       },
     })
   } catch (error) {
@@ -45,23 +29,21 @@ export async function createClerkSupabaseClient() {
   }
 }
 
-// Create a Supabase client for client-side operations with Clerk JWT
-export function createClerkSupabaseClientComponent() {
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers: {
-        Authorization: `Bearer ${getClerkToken()}`,
+// Create a Supabase client for client-side operations with Clerk JWT using native TPA integration
+// Note: For client-side operations, prefer using the useRealtime hook which handles token management
+export function createClerkSupabaseClientComponent(getToken: () => Promise<string | null>) {
+  try {
+    // Create Supabase client with native TPA integration for client-side
+    return createClient(supabaseUrl, supabaseAnonKey, {
+      async accessToken() {
+        const token = await getToken()
+        return token ?? null
       },
-    },
-  })
-}
-
-// Helper function to get Clerk token on client side
-function getClerkToken(): string {
-  // This will be implemented when we set up the Clerk provider
-  // For now, return empty string
-  // TODO: Implement proper client-side token retrieval
-  return ''
+    })
+  } catch (error) {
+    console.error('Error creating client-side Clerk Supabase client:', error)
+    return createClient(supabaseUrl, supabaseAnonKey)
+  }
 }
 
 // Database types (will be generated from Supabase)

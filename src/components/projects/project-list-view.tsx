@@ -22,7 +22,7 @@ interface ProjectListViewProps {
 function ProjectsList({ projects, searchQuery, stageFilter, priorityFilter, sortBy }: ProjectListViewProps) {
   
   // Apply filters
-  let filteredProjects = projects.filter(project => {
+  const filteredProjects = projects.filter(project => {
     // Search filter
     if (searchQuery && !project.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !project.description?.toLowerCase().includes(searchQuery.toLowerCase())) {

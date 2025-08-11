@@ -135,7 +135,7 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
 
 # JWT Integration
-SUPABASE_JWT_SECRET=your_jwt_secret
+# No shared JWT secret required when using Clerk TPA (RS256)
 
 # Webhooks
 CLERK_WEBHOOK_SECRET=your_webhook_secret

@@ -1,107 +1,54 @@
 'use client'
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { DatePicker } from '@/components/ui/date-picker'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { SubtaskForm } from './subtask-form'
 import { formatDate, isOverdue, getUserDisplayName } from '@/lib/utils'
 import type { SubtaskWithUser, User } from '@/lib/types'
-import { CheckSquare, Plus, Calendar, User as UserIcon, Clock } from 'lucide-react'
+import { CheckSquare, Calendar, User as UserIcon, Clock, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
-
-const subtaskSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters').max(200, 'Title is too long'),
-  description: z.string().optional(),
-  due_date: z.date().optional()
-})
-
-type SubtaskFormData = z.infer<typeof subtaskSchema>
 
 interface SubtasksSectionProps {
   projectId: string
   subtasks: SubtaskWithUser[]
   currentUser: User | null
+  users?: User[]
   onSubtaskAdded?: (subtask: SubtaskWithUser) => void
   onSubtaskToggled?: (subtaskId: string, completed: boolean) => void
 }
 
-export function SubtasksSection({ 
-  projectId, 
-  subtasks: initialSubtasks, 
+export function SubtasksSection({
+  projectId,
+  subtasks: initialSubtasks,
   currentUser,
+  users = [],
   onSubtaskAdded,
   onSubtaskToggled
 }: SubtasksSectionProps) {
   const [subtasks, setSubtasks] = useState(initialSubtasks)
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    reset,
-    formState: { errors }
-  } = useForm<SubtaskFormData>({
-    resolver: zodResolver(subtaskSchema)
-  })
+  useEffect(() => {
+    setSubtasks(initialSubtasks)
+  }, [initialSubtasks])
 
-  const onSubmit = async (data: SubtaskFormData) => {
-    if (!currentUser) {
-      toast.error('You must be logged in to create subtasks')
-      return
-    }
+  const handleSubtaskCreated = (newSubtask: SubtaskWithUser) => {
+    setSubtasks(prev => [newSubtask, ...prev])
+    onSubtaskAdded?.(newSubtask)
+  }
 
-    setIsSubmitting(true)
-    try {
-      const response = await fetch('/api/subtasks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          projectId,
-          title: data.title,
-          description: data.description,
-          due_date: data.due_date?.toISOString(),
-          created_by: currentUser.id
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to create subtask')
-      }
-
-      const newSubtask = await response.json()
-      
-      // Add the new subtask to the list
-      const subtaskWithUser: SubtaskWithUser = {
-        ...newSubtask,
-        creator: currentUser,
-        assignee: null
-      }
-      
-      setSubtasks(prev => [...prev, subtaskWithUser])
-      onSubtaskAdded?.(subtaskWithUser)
-      setIsCreateDialogOpen(false)
-      reset()
-      toast.success('Subtask created successfully!')
-    } catch (error) {
-      console.error('Error creating subtask:', error)
-      toast.error('Failed to create subtask')
-    } finally {
-      setIsSubmitting(false)
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'text-red-600 bg-red-50 border-red-200'
+      case 'high': return 'text-orange-600 bg-orange-50 border-orange-200'
+      case 'medium': return 'text-blue-600 bg-blue-50 border-blue-200'
+      case 'low': return 'text-gray-600 bg-gray-50 border-gray-200'
+      default: return 'text-gray-600 bg-gray-50 border-gray-200'
     }
   }
 
@@ -146,75 +93,13 @@ export function SubtasksSection({
             Subtasks ({completedCount}/{totalCount})
           </CardTitle>
           {currentUser && (
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Subtask
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New Subtask</DialogTitle>
-                  <DialogDescription>
-                    Break down the project into smaller, manageable tasks
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Title *</Label>
-                    <Input
-                      id="title"
-                      {...register('title')}
-                      placeholder="Enter subtask title"
-                      disabled={isSubmitting}
-                    />
-                    {errors.title && (
-                      <p className="text-sm text-destructive">{errors.title.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      {...register('description')}
-                      placeholder="Enter subtask description"
-                      rows={3}
-                      disabled={isSubmitting}
-                    />
-                    {errors.description && (
-                      <p className="text-sm text-destructive">{errors.description.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Due Date</Label>
-                    <DatePicker
-                      date={watch('due_date')}
-                      onDateChange={(date) => setValue('due_date', date)}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  <DialogFooter>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setIsCreateDialogOpen(false)}
-                      disabled={isSubmitting}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting && <LoadingSpinner size="sm" className="mr-2" />}
-                      Create Subtask
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <SubtaskForm
+              projectId={projectId}
+              users={users}
+              onSubtaskCreated={handleSubtaskCreated}
+            />
           )}
+
         </div>
       </CardHeader>
       <CardContent>

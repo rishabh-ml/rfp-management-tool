@@ -26,7 +26,6 @@ export async function POST(req: Request) {
 
   // Get the body
   const payload = await req.text()
-  const body = JSON.parse(payload)
 
   // Create a new Svix instance with your secret.
   const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET || '')
@@ -52,24 +51,58 @@ export async function POST(req: Request) {
 
   if (eventType === 'user.created') {
     const { id, email_addresses, first_name, last_name, image_url } = evt.data
+    const primaryEmail = email_addresses[0]?.email_address
+
+    if (!primaryEmail) {
+      console.error('No primary email found for user:', id)
+      return new Response('No email address', { status: 400 })
+    }
 
     try {
-      // Insert user into Supabase
-      const { error } = await supabase.from('users').insert({
-        clerk_id: id,
-        email: email_addresses[0]?.email_address || '',
-        first_name: first_name || null,
-        last_name: last_name || null,
-        avatar_url: image_url || null,
-        role: 'member', // Default role
+      // Use the database function to sync user
+      const { data: userId, error } = await supabase.rpc('sync_user_from_clerk', {
+        p_clerk_id: id,
+        p_email: primaryEmail,
+        p_first_name: first_name || null,
+        p_last_name: last_name || null,
+        p_avatar_url: image_url || null
       })
 
       if (error) {
-        console.error('Error creating user in Supabase:', error)
+        console.error('Error syncing user to Supabase:', error)
         return new Response('Error creating user', { status: 500 })
       }
 
-      console.log('User created successfully:', id)
+      console.log('User created successfully:', userId)
+
+      // Check if user was invited and update their role
+      const { data: invitation } = await supabase
+        .from('invitations')
+        .select('role')
+        .eq('email', primaryEmail)
+        .is('accepted_at', null)
+        .gt('expires_at', new Date().toISOString())
+        .single()
+
+      if (invitation) {
+        // Update user role based on invitation
+        await supabase
+          .from('users')
+          .update({ role: invitation.role })
+          .eq('id', userId)
+
+        // Mark invitation as accepted
+        await supabase
+          .from('invitations')
+          .update({
+            accepted_at: new Date().toISOString(),
+            accepted_by: userId
+          })
+          .eq('email', primaryEmail)
+
+        console.log(`User role updated to ${invitation.role} based on invitation`)
+      }
+
     } catch (error) {
       console.error('Error processing user.created webhook:', error)
       return new Response('Error processing webhook', { status: 500 })
@@ -107,18 +140,21 @@ export async function POST(req: Request) {
     const { id } = evt.data
 
     try {
-      // Delete user from Supabase
+      // Soft delete user (set is_active to false instead of hard delete)
       const { error } = await supabase
         .from('users')
-        .delete()
+        .update({
+          is_active: false,
+          updated_at: new Date().toISOString()
+        })
         .eq('clerk_id', id)
 
       if (error) {
-        console.error('Error deleting user from Supabase:', error)
-        return new Response('Error deleting user', { status: 500 })
+        console.error('Error deactivating user in Supabase:', error)
+        return new Response('Error deactivating user', { status: 500 })
       }
 
-      console.log('User deleted successfully:', id)
+      console.log('User deactivated successfully:', id)
     } catch (error) {
       console.error('Error processing user.deleted webhook:', error)
       return new Response('Error processing webhook', { status: 500 })

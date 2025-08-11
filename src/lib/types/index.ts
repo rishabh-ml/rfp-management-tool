@@ -6,38 +6,39 @@ export type UserRole = 'admin' | 'manager' | 'member'
 
 // User types
 export interface User {
-  id: string
-  clerk_id: string
+  id: string                    // Clerk user ID (TEXT)
   email: string
   first_name: string | null
   last_name: string | null
   avatar_url: string | null
   role: UserRole
+  is_active: boolean
+  last_login_at: string | null
   created_at: string
   updated_at: string
 }
 
 export interface UserInsert {
-  id?: string
-  clerk_id: string
+  id: string                    // Clerk user ID (required)
   email: string
   first_name?: string | null
   last_name?: string | null
   avatar_url?: string | null
   role?: UserRole
+  is_active?: boolean
+  last_login_at?: string | null
   created_at?: string
   updated_at?: string
 }
 
 export interface UserUpdate {
-  id?: string
-  clerk_id?: string
   email?: string
   first_name?: string | null
   last_name?: string | null
   avatar_url?: string | null
   role?: UserRole
-  created_at?: string
+  is_active?: boolean
+  last_login_at?: string | null
   updated_at?: string
 }
 
@@ -49,9 +50,17 @@ export interface Project {
   stage: ProjectStage
   priority: ProjectPriority
   due_date: string | null
-  owner_id: string | null
+  owner_id: string                    // Required in database schema
   progress_percentage: number
   status_notes: string | null
+  estimated_hours: number | null
+  actual_hours: number | null
+  budget_amount: number | null
+  client_name: string | null
+  client_email: string | null
+  rfp_document_url: string | null
+  submission_url: string | null
+  is_archived: boolean
   created_at: string
   updated_at: string
 }
@@ -63,24 +72,38 @@ export interface ProjectInsert {
   stage?: ProjectStage
   priority?: ProjectPriority
   due_date?: string | null
-  owner_id?: string | null
+  owner_id: string                    // Required in database schema
   progress_percentage?: number
   status_notes?: string | null
+  estimated_hours?: number | null
+  actual_hours?: number | null
+  budget_amount?: number | null
+  client_name?: string | null
+  client_email?: string | null
+  rfp_document_url?: string | null
+  submission_url?: string | null
+  is_archived?: boolean
   created_at?: string
   updated_at?: string
 }
 
 export interface ProjectUpdate {
-  id?: string
   title?: string
   description?: string | null
   stage?: ProjectStage
   priority?: ProjectPriority
   due_date?: string | null
-  owner_id?: string | null
+  owner_id?: string
   progress_percentage?: number
   status_notes?: string | null
-  created_at?: string
+  estimated_hours?: number | null
+  actual_hours?: number | null
+  budget_amount?: number | null
+  client_name?: string | null
+  client_email?: string | null
+  rfp_document_url?: string | null
+  submission_url?: string | null
+  is_archived?: boolean
   updated_at?: string
 }
 
@@ -138,6 +161,8 @@ export interface Comment {
   project_id: string
   user_id: string
   content: string
+  parent_id: string | null
+  is_edited: boolean
   created_at: string
   updated_at: string
 }
@@ -147,16 +172,15 @@ export interface CommentInsert {
   project_id: string
   user_id: string
   content: string
+  parent_id?: string | null
+  is_edited?: boolean
   created_at?: string
   updated_at?: string
 }
 
 export interface CommentUpdate {
-  id?: string
-  project_id?: string
-  user_id?: string
   content?: string
-  created_at?: string
+  is_edited?: boolean
   updated_at?: string
 }
 
@@ -173,7 +197,12 @@ export interface Subtask {
   assigned_to: string | null
   completed: boolean
   due_date: string | null
+  estimated_hours: number | null
+  actual_hours: number | null
+  priority: ProjectPriority
   created_by: string | null
+  completed_at: string | null
+  completed_by: string | null
   created_at: string
   updated_at: string
 }
@@ -186,42 +215,52 @@ export interface SubtaskInsert {
   assigned_to?: string | null
   completed?: boolean
   due_date?: string | null
+  estimated_hours?: number | null
+  actual_hours?: number | null
+  priority?: ProjectPriority
   created_by?: string | null
+  completed_at?: string | null
+  completed_by?: string | null
   created_at?: string
   updated_at?: string
 }
 
 export interface SubtaskUpdate {
-  id?: string
-  project_id?: string
   title?: string
   description?: string | null
   assigned_to?: string | null
   completed?: boolean
   due_date?: string | null
-  created_by?: string | null
-  created_at?: string
+  estimated_hours?: number | null
+  actual_hours?: number | null
+  priority?: ProjectPriority
+  completed_at?: string | null
+  completed_by?: string | null
   updated_at?: string
 }
 
 export interface SubtaskWithUser extends Subtask {
   assignee?: User | null
   creator?: User | null
+  completed_by_user?: User | null
 }
 
 // Activity log types
 export interface ActivityLog {
   id: string
-  project_id: string
   user_id: string | null
   action: string
-  details: Record<string, any> | null
+  entity_type: string
+  entity_id: string
+  old_values: Record<string, any> | null
+  new_values: Record<string, any> | null
+  ip_address: string | null
+  user_agent: string | null
   created_at: string
 }
 
 export interface ActivityLogWithUser extends ActivityLog {
   user?: User | null
-  project?: Project
 }
 
 // API Response types
@@ -341,4 +380,83 @@ export interface RealtimeEvent {
   payload: any
   timestamp: string
   user_id?: string
+}
+
+// Custom Attributes types
+export type AttributeType =
+  | 'text' | 'long_text' | 'number' | 'date' | 'checkbox' | 'dropdown'
+  | 'label' | 'checklist' | 'link' | 'member' | 'vote' | 'progress'
+  | 'rating' | 'created_at' | 'updated_at' | 'created_by' | 'button' | 'custom_id'
+
+export interface CustomAttribute {
+  id: string
+  name: string
+  label: string
+  type: AttributeType
+  description: string | null
+  is_required: boolean
+  is_active: boolean
+  options: Record<string, any> | null
+  default_value: string | null
+  validation_rules: Record<string, any> | null
+  display_order: number
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface CustomAttributeInsert {
+  id?: string
+  name: string
+  label: string
+  type: AttributeType
+  description?: string | null
+  is_required?: boolean
+  is_active?: boolean
+  options?: Record<string, any> | null
+  default_value?: string | null
+  validation_rules?: Record<string, any> | null
+  display_order?: number
+  created_by?: string | null
+}
+
+export interface ProjectAttributeValue {
+  id: string
+  project_id: string
+  attribute_id: string
+  value: string | null
+  value_json: Record<string, any> | null
+  created_at: string
+  updated_at: string
+}
+
+// Invitations types
+export interface Invitation {
+  id: string
+  email: string
+  role: UserRole
+  invited_by: string | null
+  token: string
+  expires_at: string
+  accepted_at: string | null
+  accepted_by: string | null
+  created_at: string
+}
+
+// User Preferences types
+export interface UserPreferences {
+  id: string
+  user_id: string
+  email_notifications: boolean
+  project_assignments: boolean
+  due_date_reminders: boolean
+  comment_mentions: boolean
+  weekly_summary: boolean
+  notification_frequency: 'immediate' | 'hourly' | 'daily' | 'weekly'
+  quiet_hours_start: string | null
+  quiet_hours_end: string | null
+  timezone: string
+  theme: 'light' | 'dark' | 'system'
+  created_at: string
+  updated_at: string
 }

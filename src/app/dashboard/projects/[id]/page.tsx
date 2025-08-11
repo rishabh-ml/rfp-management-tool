@@ -12,6 +12,7 @@ import { Tag } from '@/components/ui/tag'
 import { ProgressBar } from '@/components/ui/progress-bar'
 import { CommentsSection } from '@/components/comments/comments-section'
 import { SubtasksSection } from '@/components/subtasks/subtasks-section'
+import { ProgressTracker } from '@/components/projects/progress-tracker'
 import { ProjectService } from '@/lib/services/project-service'
 import { UserService } from '@/lib/services/user-service'
 import { formatDate, formatRelativeDate, isOverdue, getUserDisplayName } from '@/lib/utils'
@@ -82,32 +83,11 @@ async function ProjectDetails({ projectId }: { projectId: string }) {
       <div className="grid gap-6 md:grid-cols-3">
         {/* Main Content */}
         <div className="md:col-span-2 space-y-6">
-          {/* Progress (for assigned projects) */}
-          {project.stage === 'assigned' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Progress</CardTitle>
-                <CardDescription>
-                  Current completion status
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ProgressBar
-                  value={project.progress_percentage}
-                  showLabel={true}
-                  label="Completion"
-                />
-                {project.status_notes && (
-                  <div className="mt-4">
-                    <h4 className="font-medium mb-2">Status Notes</h4>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                      {project.status_notes}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          {/* Progress Tracker */}
+          <ProgressTracker
+            project={project}
+            canEdit={currentUser?.id === project.owner_id || ['admin', 'manager'].includes(currentUser?.role || '')}
+          />
 
           {/* Comments Section */}
           <CommentsSection

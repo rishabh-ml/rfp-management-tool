@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
-import { Button } from '@/components/ui/button'
+// Button import removed - not used in this component
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { Plus } from 'lucide-react'
+// Plus import removed - not used in this component
 import { TagsManager } from '@/components/tags/tags-manager'
 
 export default function TagsPage() {

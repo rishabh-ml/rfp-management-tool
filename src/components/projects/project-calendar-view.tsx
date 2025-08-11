@@ -14,37 +14,22 @@ interface ProjectCalendarViewProps {
 }
 
 export function ProjectCalendarView({ projects, ...props }: ProjectCalendarViewProps) {
-  // TODO: Implement full calendar functionality
   const currentDate = new Date()
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ]
 
-  // Mock calendar data
-  const calendarEvents = [
-    {
-      id: '1',
-      title: 'City Council Website Redesign',
-      date: new Date(2024, currentDate.getMonth(), 15),
-      stage: 'assigned',
-      priority: 'high'
-    },
-    {
-      id: '2',
-      title: 'E-commerce Platform',
-      date: new Date(2024, currentDate.getMonth(), 28),
-      stage: 'submitted',
-      priority: 'medium'
-    },
-    {
-      id: '3',
-      title: 'Mobile Banking App MVP',
-      date: new Date(2024, currentDate.getMonth(), 20),
-      stage: 'assigned',
-      priority: 'urgent'
-    }
-  ]
+  // Convert projects to calendar events
+  const calendarEvents = projects
+    .filter(project => project.due_date)
+    .map(project => ({
+      id: project.id,
+      title: project.title,
+      date: new Date(project.due_date!),
+      stage: project.stage,
+      priority: project.priority
+    }))
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()

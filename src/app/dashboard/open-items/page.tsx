@@ -8,12 +8,11 @@ import { PriorityBadge } from '@/components/ui/priority-badge'
 import { StageBadge } from '@/components/ui/stage-badge'
 import { ProjectService } from '@/lib/services/project-service'
 import { formatDate, formatRelativeDate, isOverdue, getUserDisplayName } from '@/lib/utils'
-import { 
-  AlertTriangle, 
-  Clock, 
-  UserX, 
-  CheckCircle, 
-  XCircle,
+import {
+  AlertTriangle,
+  Clock,
+  UserX,
+  CheckCircle,
   AlertCircle,
   Calendar,
   User,
