@@ -66,15 +66,15 @@ export function ProjectViewClient({ projects, users, tags }: ProjectViewClientPr
 
     // Apply priority filter
     if (priorityFilter !== 'all') {
-      filtered = filtered.filter(project => project.priority === priorityFilter)
+      filtered = filtered.filter(project => project.priority_banding === priorityFilter)
     }
 
     if (filters.stage) {
       filtered = filtered.filter(project => project.stage === filters.stage)
     }
 
-    if (filters.priority) {
-      filtered = filtered.filter(project => project.priority === filters.priority)
+    if (filters.priority_banding) {
+      filtered = filtered.filter(project => project.priority_banding === filters.priority_banding)
     }
 
     if (filters.owner_id) {

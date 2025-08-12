@@ -23,7 +23,6 @@ export class ProjectService {
     try {
       const supabase = await createClerkSupabaseClient()
 
-      // Use real database operations
       if (!supabase) {
         console.error('Supabase client creation failed')
         return []
@@ -33,15 +32,15 @@ export class ProjectService {
         .from('projects')
         .select(`
           *,
-          owner:users(id, first_name, last_name, email, avatar_url)
+          owner:users!projects_owner_id_fkey(id, first_name, last_name, email, avatar_url, role)
         `)
 
       // Apply filters
       if (filters?.stage?.length) {
         query = query.in('stage', filters.stage)
       }
-      if (filters?.priority?.length) {
-        query = query.in('priority', filters.priority)
+      if (filters?.priority_banding?.length) {
+        query = query.in('priority_banding', filters.priority_banding)
       }
       if (filters?.owner_id?.length) {
         query = query.in('owner_id', filters.owner_id)
@@ -53,7 +52,7 @@ export class ProjectService {
         query = query.lte('due_date', filters.due_date_to)
       }
       if (filters?.search) {
-        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`)
+        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%,client_name.ilike.%${filters.search}%,rfp_title.ilike.%${filters.search}%`)
       }
 
       // Apply sorting
@@ -78,13 +77,11 @@ export class ProjectService {
           message: error.message,
           code: error.code,
           details: error.details,
-          hint: error.hint,
-          full_error: error
+          hint: error.hint
         })
-        return []
+        throw new Error(`Failed to fetch projects: ${error.message}`)
       }
 
-      // Return simplified data without complex joins
       if (!data || data.length === 0) {
         console.log('No projects found in database')
         return []
@@ -105,20 +102,25 @@ export class ProjectService {
     }
   }
 
-  // Mock methods removed for production
-
   /**
    * Get project by ID with full details
    */
   static async getProjectById(projectId: string): Promise<ProjectWithDetails | null> {
     try {
+      console.log('Attempting to fetch project:', projectId)
       const supabase = await createClerkSupabaseClient()
       
+      if (!supabase) {
+        console.error('Failed to create Supabase client')
+        return null
+      }
+
+      console.log('Supabase client created, making query...')
       const { data, error } = await supabase
         .from('projects')
         .select(`
           *,
-          owner:users!owner_id(id, first_name, last_name, email, avatar_url, role),
+          owner:users!projects_owner_id_fkey(id, first_name, last_name, email, avatar_url, role),
           tags:project_tags(tag:tags(id, name, color, created_by)),
           comments:comments(
             id, content, created_at, updated_at,
@@ -126,8 +128,8 @@ export class ProjectService {
           ),
           subtasks:subtasks(
             id, title, description, completed, due_date, created_at, updated_at,
-            assignee:users!assigned_to(id, first_name, last_name, email, avatar_url),
-            creator:users!created_by(id, first_name, last_name, email, avatar_url)
+            assignee:users!subtasks_assigned_to_fkey(id, first_name, last_name, email, avatar_url),
+            creator:users!subtasks_created_by_fkey(id, first_name, last_name, email, avatar_url)
           )
         `)
         .eq('id', projectId)
@@ -138,8 +140,13 @@ export class ProjectService {
         return null
       }
 
-      if (!data) return null
+      if (!data) {
+        console.log('No project data returned')
+        return null
+      }
 
+      console.log('Project data fetched successfully')
+      
       // Transform the data
       return {
         ...data,
@@ -385,6 +392,7 @@ export class ProjectService {
       const projectsByStage: Record<ProjectStage, ProjectWithDetails[]> = {
         unassigned: [],
         assigned: [],
+        reviewed: [],
         submitted: [],
         skipped: [],
         won: [],
@@ -401,6 +409,7 @@ export class ProjectService {
       return {
         unassigned: [],
         assigned: [],
+        reviewed: [],
         submitted: [],
         skipped: [],
         won: [],

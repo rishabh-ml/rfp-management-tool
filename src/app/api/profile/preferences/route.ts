@@ -59,24 +59,36 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
+    console.log('PUT /api/profile/preferences called')
+    
     const { userId } = await auth()
+    console.log('User ID from auth:', userId)
+    
     if (!userId) {
+      console.log('No user ID found - unauthorized')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
+    console.log('Request body:', body)
+    
     const validatedData = updatePreferencesSchema.parse(body)
+    console.log('Validated data:', validatedData)
 
     const supabase = await createClerkSupabaseClient()
 
     // Get current user
-    const { data: currentUser } = await supabase
+    console.log('Looking for user in database:', userId)
+    const { data: currentUser, error: userError } = await supabase
       .from('users')
       .select('id')
       .eq('id', userId)
       .single()
 
+    console.log('User query result:', { currentUser, userError })
+
     if (!currentUser) {
+      console.log('User not found in database')
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
@@ -93,17 +105,21 @@ export async function PUT(request: NextRequest) {
 
     if (upsertError) {
       console.error('Error updating user preferences:', upsertError)
-      return NextResponse.json({ error: 'Failed to update preferences' }, { status: 500 })
+      console.error('Upsert error details:', JSON.stringify(upsertError, null, 2))
+      return NextResponse.json({ 
+        error: 'Failed to update preferences', 
+        details: upsertError.message 
+      }, { status: 500 })
     }
 
-    // Log activity
-    await supabase.rpc('log_activity', {
-      p_user_id: currentUser.id,
-      p_action: 'preferences_updated',
-      p_entity_type: 'user_preferences',
-      p_entity_id: preferences.id,
-      p_new_values: validatedData
-    })
+    // Log activity (temporarily disabled - log_activity function not available yet)
+    // await supabase.rpc('log_activity', {
+    //   p_user_id: currentUser.id,
+    //   p_action: 'preferences_updated',
+    //   p_entity_type: 'user_preferences',
+    //   p_entity_id: preferences.id,
+    //   p_new_values: validatedData
+    // })
 
     return NextResponse.json({ 
       preferences,
@@ -112,9 +128,16 @@ export async function PUT(request: NextRequest) {
 
   } catch (error) {
     console.error('API error:', error)
+    console.error('Error details:', JSON.stringify(error, null, 2))
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid data', details: error.issues }, { status: 400 })
+      return NextResponse.json({ 
+        error: 'Invalid data', 
+        details: error.issues 
+      }, { status: 400 })
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Internal server error', 
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }

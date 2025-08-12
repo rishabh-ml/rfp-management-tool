@@ -43,17 +43,29 @@ interface ProjectDetailPageProps {
 }
 
 async function ProjectDetails({ projectId }: { projectId: string }) {
-  const [project, currentUser] = await Promise.all([
-    ProjectService.getProjectById(projectId),
-    UserService.getCurrentUser()
-  ])
+  try {
+    const [projectResult, currentUserResult] = await Promise.allSettled([
+      ProjectService.getProjectById(projectId),
+      UserService.getCurrentUser()
+    ])
 
-  if (!project) {
-    notFound()
-  }
+    // Handle project fetch result
+    const project = projectResult.status === 'fulfilled' ? projectResult.value : null
+    if (!project) {
+      if (projectResult.status === 'rejected') {
+        console.error('Failed to fetch project:', projectResult.reason)
+      }
+      notFound()
+    }
 
-  return (
-    <div className="flex-1 space-y-8 p-6 max-w-7xl mx-auto">
+    // Handle user fetch result  
+    const currentUser = currentUserResult.status === 'fulfilled' ? currentUserResult.value : null
+    if (currentUserResult.status === 'rejected') {
+      console.error('Failed to fetch current user:', currentUserResult.reason)
+    }
+
+    return (
+      <div className="flex-1 space-y-8 p-6 max-w-7xl mx-auto">
       {/* Back Button */}
       <div className="flex items-center gap-4">
         <Button variant="outline" size="sm" asChild>
@@ -69,7 +81,18 @@ async function ProjectDetails({ projectId }: { projectId: string }) {
         <div className="space-y-4 flex-1">
           <div className="flex flex-wrap items-center gap-3">
             <StageBadge stage={project.stage} />
-            <PriorityBadge priority={project.priority} />
+            {project.priority_banding && (
+              <Badge variant="outline" className="gap-1">
+                <Target className="h-3 w-3" />
+                {project.priority_banding}
+              </Badge>
+            )}
+            {project.company_assignment && (
+              <Badge variant="secondary" className="gap-1">
+                <Users className="h-3 w-3" />
+                {project.company_assignment}
+              </Badge>
+            )}
             {project.budget_amount && (
               <Badge variant="outline" className="gap-1">
                 <DollarSign className="h-3 w-3" />
@@ -137,7 +160,7 @@ async function ProjectDetails({ projectId }: { projectId: string }) {
         <div className="flex-shrink-0">
           <ProjectActionsMenu 
             project={project} 
-            currentUser={currentUser}
+            currentUser={currentUser as any}
             users={[]} // Will need to fetch users if needed
             tags={[]}  // Will need to fetch tags if needed
             customAttributes={[]} // Will need to fetch if needed
@@ -225,6 +248,114 @@ async function ProjectDetails({ projectId }: { projectId: string }) {
                         {isOverdue(project.due_date) ? 'Overdue' : formatRelativeDate(project.due_date)}
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* RFP Information */}
+              <div className="space-y-4">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  RFP Details
+                </Label>
+                <div className="space-y-3">
+                  {project.rfp_title && project.rfp_title !== project.title && (
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium text-muted-foreground uppercase">RFP Title</div>
+                      <div className="text-sm">{project.rfp_title}</div>
+                    </div>
+                  )}
+                  {project.rfp_added_date && (
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium text-muted-foreground uppercase">RFP Added</div>
+                      <div className="text-sm">{formatDate(project.rfp_added_date)}</div>
+                    </div>
+                  )}
+                  {project.state && (
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium text-muted-foreground uppercase">State</div>
+                      <div className="text-sm flex items-center gap-2">
+                        <MapPin className="h-3 w-3" />
+                        {project.state}
+                      </div>
+                    </div>
+                  )}
+                  {(project.portal_url || project.folder_url) && (
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium text-muted-foreground uppercase">Links</div>
+                      <div className="space-y-1">
+                        {project.portal_url && (
+                          <a 
+                            href={project.portal_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Portal URL
+                          </a>
+                        )}
+                        {project.folder_url && (
+                          <a 
+                            href={project.folder_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Folder URL
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Assignment Information */}
+              {(project.assigned_to || project.company_assignment) && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Assignment
+                  </Label>
+                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                    {project.assigned_to && (
+                      <div>
+                        <div className="text-xs font-medium text-muted-foreground uppercase">Assigned To</div>
+                        <div className="text-sm">{project.assigned_to}</div>
+                      </div>
+                    )}
+                    {project.company_assignment && (
+                      <div>
+                        <div className="text-xs font-medium text-muted-foreground uppercase">Company</div>
+                        <div className="text-sm">{project.company_assignment}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Post-Review Information */}
+              {(project.priority_banding || project.review_comment) && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Target className="h-4 w-4" />
+                    Review Information
+                  </Label>
+                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                    {project.priority_banding && (
+                      <div>
+                        <div className="text-xs font-medium text-muted-foreground uppercase">Priority Banding</div>
+                        <div className="text-sm">{project.priority_banding}</div>
+                      </div>
+                    )}
+                    {project.review_comment && (
+                      <div>
+                        <div className="text-xs font-medium text-muted-foreground uppercase">Review Comment</div>
+                        <div className="text-sm">{project.review_comment}</div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -352,6 +483,10 @@ async function ProjectDetails({ projectId }: { projectId: string }) {
       </div>
     </div>
   )
+  } catch (error) {
+    console.error('Error in ProjectDetails:', error)
+    notFound()
+  }
 }
 
 function Label({ children, className }: { children: React.ReactNode; className?: string }) {

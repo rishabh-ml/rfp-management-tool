@@ -29,8 +29,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('notifications')
       .select(`
-        *,
-        created_by_user:users!notifications_created_by_fkey(id, first_name, last_name, avatar_url)
+        *
       `)
       .eq('user_id', currentUser.id)
       .order('created_at', { ascending: false })

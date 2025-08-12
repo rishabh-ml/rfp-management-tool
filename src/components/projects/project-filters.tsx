@@ -31,7 +31,7 @@ import type { User as UserType, Tag } from '@/lib/types'
 export interface ProjectFilters {
   search?: string
   stage?: string
-  priority?: string
+  priority_banding?: string
   owner_id?: string
   tags?: string[]
   due_date_from?: Date
@@ -72,11 +72,10 @@ const STAGE_OPTIONS = [
   { value: 'completed', label: 'Completed' }
 ]
 
-const PRIORITY_OPTIONS = [
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-  { value: 'urgent', label: 'Urgent' }
+const PRIORITY_BANDING_OPTIONS = [
+  { value: 'P1', label: 'P1' },
+  { value: 'P2', label: 'P2' },
+  { value: 'P3', label: 'P3' }
 ]
 
 export function ProjectFilters({
@@ -120,7 +119,7 @@ export function ProjectFilters({
     let count = 0
     if (filters.search) count++
     if (filters.stage) count++
-    if (filters.priority) count++
+    if (filters.priority_banding) count++
     if (filters.owner_id) count++
     if (filters.tags && filters.tags.length > 0) count++
     if (filters.due_date_from || filters.due_date_to) count++
@@ -235,19 +234,19 @@ export function ProjectFilters({
                 </Select>
               </div>
 
-              {/* Priority Filter */}
+              {/* Priority Banding Filter */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Priority</Label>
+                <Label className="text-sm font-medium">Priority Banding</Label>
                 <Select
-                  value={localFilters.priority || 'all'}
-                  onValueChange={(value) => updateFilter('priority', value === 'all' ? undefined : value)}
+                  value={localFilters.priority_banding || 'all'}
+                  onValueChange={(value) => updateFilter('priority_banding', value === 'all' ? undefined : value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="All priorities" />
+                    <SelectValue placeholder="All priority bandings" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All priorities</SelectItem>
-                    {PRIORITY_OPTIONS.map((priority) => (
+                    <SelectItem value="all">All priority bandings</SelectItem>
+                    {PRIORITY_BANDING_OPTIONS.map((priority) => (
                       <SelectItem key={priority.value} value={priority.value}>
                         {priority.label}
                       </SelectItem>
@@ -363,10 +362,10 @@ export function ProjectFilters({
             </Badge>
           )}
           
-          {filters.priority && (
+          {filters.priority_banding && (
             <Badge variant="secondary" className="gap-1">
-              Priority: {PRIORITY_OPTIONS.find(p => p.value === filters.priority)?.label}
-              <button onClick={() => clearFilter('priority')}>
+              Priority Banding: {PRIORITY_BANDING_OPTIONS.find(p => p.value === filters.priority_banding)?.label}
+              <button onClick={() => clearFilter('priority_banding')}>
                 <X className="h-3 w-3" />
               </button>
             </Badge>

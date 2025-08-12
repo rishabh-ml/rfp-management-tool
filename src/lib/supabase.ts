@@ -16,10 +16,21 @@ export async function createClerkSupabaseClient() {
     // Create Supabase client with native TPA integration
     // This uses the new accessToken() method instead of Authorization headers
     return createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        fetch: (input, init) => {
+          console.log('Supabase fetch request:', input)
+          return fetch(input, init)
+        }
+      },
       async accessToken() {
-        // Get the Clerk session token - no custom template needed with TPA
-        const token = await getToken()
-        return token ?? null
+        try {
+          // Get the Clerk session token - no custom template needed with TPA
+          const token = await getToken()
+          return token ?? null
+        } catch (error) {
+          console.error('Error getting Clerk token:', error)
+          return null
+        }
       },
     })
   } catch (error) {

@@ -4,10 +4,28 @@ import { ProjectService } from '@/lib/services/project-service'
 import { z } from 'zod'
 
 const createProjectSchema = z.object({
-  title: z.string().min(3).max(200),
+  // Basic Project Info
+  title: z.string().min(1, 'Project title is required').max(200),
   description: z.string().optional().nullable(),
-  priority: z.enum(['low', 'medium', 'high', 'urgent']),
   due_date: z.string().optional().nullable(),
+  
+  // RFP Details
+  rfp_added_date: z.date(),
+  rfp_title: z.string().min(1, 'RFP title is required').max(500),
+  client_name: z.string().min(1, 'Client name is required').max(200),
+  state: z.string().min(1, 'State is required').max(100),
+  portal_url: z.string().url('Invalid portal URL').optional().or(z.literal('')),
+  folder_url: z.string().url('Invalid folder URL').optional().or(z.literal('')),
+  
+  // Project Management
+  assigned_to: z.string().optional().nullable(),
+  company_assignment: z.string().optional().nullable(),
+  
+  // Post-Review (all optional)
+  priority_banding: z.enum(['P1', 'P2', 'P3']).optional(),
+  review_comment: z.string().max(1000).optional().nullable(),
+  
+  // System fields
   stage: z.enum(['unassigned', 'assigned', 'submitted', 'skipped', 'won', 'lost']).optional()
 })
 
@@ -21,13 +39,34 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json()
+    console.log('Received project data:', body) // Debug log
+    
+    // Convert date strings back to Date objects for validation
+    if (body.rfp_added_date) {
+      body.rfp_added_date = new Date(body.rfp_added_date)
+    }
+    
     const projectData = createProjectSchema.parse(body)
 
     // Create project with authenticated user as owner
     const project = await ProjectService.createProject({
-      ...projectData,
+      title: projectData.title,
       description: projectData.description || null,
       due_date: projectData.due_date || null,
+      // RFP fields
+      rfp_added_date: projectData.rfp_added_date.toISOString(),
+      rfp_title: projectData.rfp_title,
+      client_name: projectData.client_name,
+      state: projectData.state,
+      portal_url: projectData.portal_url || null,
+      folder_url: projectData.folder_url || null,
+      // Management fields
+      assigned_to: projectData.assigned_to || null,
+      company_assignment: projectData.company_assignment || null,
+      // Post-review fields
+      priority_banding: projectData.priority_banding || null,
+      review_comment: projectData.review_comment || null,
+      // System fields
       owner_id: userId, // Use authenticated user ID
       stage: projectData.stage || 'assigned' // Default to assigned since owner_id is required
     })

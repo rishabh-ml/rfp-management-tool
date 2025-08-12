@@ -101,13 +101,25 @@ export function ProfileForm({ user, preferences }: ProfileFormProps) {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update profile')
+        const errorData = await response.json().catch(() => ({}))
+        const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`
+        throw new Error(errorMessage)
       }
 
-      toast.success('Profile updated successfully!')
+      const result = await response.json()
+      toast.success(result.message || 'Profile updated successfully!')
     } catch (error) {
       console.error('Error updating profile:', error)
-      toast.error('Failed to update profile')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile'
+      
+      // Show specific error messages for common issues
+      if (errorMessage.includes('relation') || errorMessage.includes('table')) {
+        toast.error('Database not initialized. Please run the setup scripts first.')
+      } else if (errorMessage.includes('Unauthorized')) {
+        toast.error('You need to be signed in to update your profile')
+      } else {
+        toast.error(`Failed to update profile: ${errorMessage}`)
+      }
     } finally {
       setIsSubmittingProfile(false)
     }
@@ -116,6 +128,8 @@ export function ProfileForm({ user, preferences }: ProfileFormProps) {
   const onSubmitNotifications = async (data: NotificationFormData) => {
     setIsSubmittingNotifications(true)
     try {
+      console.log('Submitting notification preferences:', data)
+      
       const response = await fetch('/api/profile/preferences', {
         method: 'PUT',
         headers: {
@@ -124,14 +138,30 @@ export function ProfileForm({ user, preferences }: ProfileFormProps) {
         body: JSON.stringify(data)
       })
 
+      console.log('Response status:', response.status, response.statusText)
+
       if (!response.ok) {
-        throw new Error('Failed to update preferences')
+        const errorData = await response.json().catch(() => ({}))
+        console.log('Error response data:', errorData)
+        const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`
+        throw new Error(errorMessage)
       }
 
-      toast.success('Notification preferences updated!')
+      const result = await response.json()
+      console.log('Success response:', result)
+      toast.success(result.message || 'Notification preferences updated!')
     } catch (error) {
       console.error('Error updating preferences:', error)
-      toast.error('Failed to update preferences')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update preferences'
+      
+      // Show specific error messages for common issues
+      if (errorMessage.includes('relation') || errorMessage.includes('table')) {
+        toast.error('Database not initialized. Please run the setup scripts first.')
+      } else if (errorMessage.includes('Unauthorized')) {
+        toast.error('You need to be signed in to update preferences')
+      } else {
+        toast.error(`Failed to update preferences: ${errorMessage}`)
+      }
     } finally {
       setIsSubmittingNotifications(false)
     }

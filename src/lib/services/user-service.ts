@@ -27,8 +27,13 @@ export class UserService {
         .single()
 
       if (error) {
+        // If user doesn't exist (PGRST116 is "not found" error), return null
+        if (error.code === 'PGRST116') {
+          console.log('User not found in database, may need to sync:', clerkUser.id)
+          return null
+        }
         console.error('Error fetching current user from database:', error)
-        throw new Error('Failed to fetch user from database')
+        return null
       }
 
       return data

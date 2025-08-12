@@ -18,6 +18,13 @@ export interface User {
   last_login_at: string | null
   created_at: string
   updated_at: string
+  // Extended profile fields
+  phone?: string | null
+  location?: string | null
+  bio?: string | null
+  timezone?: string | null
+  job_title?: string | null
+  department?: string | null
 }
 
 export interface UserInsert {
@@ -31,6 +38,13 @@ export interface UserInsert {
   last_login_at?: string | null
   created_at?: string
   updated_at?: string
+  // Extended profile fields
+  phone?: string | null
+  location?: string | null
+  bio?: string | null
+  timezone?: string | null
+  job_title?: string | null
+  department?: string | null
 }
 
 export interface UserUpdate {
@@ -42,6 +56,13 @@ export interface UserUpdate {
   is_active?: boolean
   last_login_at?: string | null
   updated_at?: string
+  // Extended profile fields
+  phone?: string | null
+  location?: string | null
+  bio?: string | null
+  timezone?: string | null
+  job_title?: string | null
+  department?: string | null
 }
 
 // Project types
@@ -71,11 +92,11 @@ export interface Project {
   state: string | null
   portal_url: string | null
   folder_url: string | null
-  // Post-review fields
-  priority_banding: PriorityBanding | null
+  // Post-review fields (using string types for database compatibility)
+  priority_banding: string | null
   review_comment: string | null
   assigned_to: string | null
-  company_assignment: CompanyType | null
+  company_assignment: string | null
 }
 
 export interface ProjectInsert {
@@ -104,11 +125,11 @@ export interface ProjectInsert {
   state?: string | null
   portal_url?: string | null
   folder_url?: string | null
-  // Post-review fields
-  priority_banding?: PriorityBanding | null
+  // Post-review fields (using string types for database compatibility)
+  priority_banding?: string | null
   review_comment?: string | null
   assigned_to?: string | null
-  company_assignment?: CompanyType | null
+  company_assignment?: string | null
 }
 
 export interface ProjectUpdate {
@@ -135,11 +156,11 @@ export interface ProjectUpdate {
   state?: string | null
   portal_url?: string | null
   folder_url?: string | null
-  // Post-review fields
-  priority_banding?: PriorityBanding | null
+  // Post-review fields (using string types for database compatibility)
+  priority_banding?: string | null
   review_comment?: string | null
   assigned_to?: string | null
-  company_assignment?: CompanyType | null
+  company_assignment?: string | null
 }
 
 // Enhanced project with related data
@@ -318,7 +339,7 @@ export interface PaginatedResponse<T = any> extends ApiResponse<T[]> {
 // Filter and sort types
 export interface ProjectFilters {
   stage?: ProjectStage[]
-  priority?: ProjectPriority[]
+  priority_banding?: PriorityBanding[]
   owner_id?: string[]
   tag_ids?: string[]
   due_date_from?: string
@@ -327,7 +348,7 @@ export interface ProjectFilters {
 }
 
 export interface ProjectSort {
-  field: 'title' | 'created_at' | 'updated_at' | 'due_date' | 'priority' | 'progress_percentage'
+  field: 'title' | 'created_at' | 'updated_at' | 'due_date' | 'priority_banding' | 'progress_percentage'
   direction: 'asc' | 'desc'
 }
 
@@ -356,10 +377,22 @@ export interface DragResult {
 export interface ProjectFormData {
   title: string
   description?: string
-  priority: ProjectPriority
-  due_date?: string
+  due_date: Date
   owner_id?: string
   tag_ids?: string[]
+  // RFP Details
+  rfp_added_date: Date
+  rfp_title?: string
+  client_name: string
+  state: string
+  portal_url?: string
+  folder_url?: string
+  // Project Management
+  assigned_to?: string
+  company_assignment?: string
+  // Post-Review
+  priority_banding?: PriorityBanding
+  review_comment?: string
 }
 
 export interface CommentFormData {
@@ -382,7 +415,7 @@ export interface TagFormData {
 export interface ProjectStats {
   total: number
   by_stage: Record<ProjectStage, number>
-  by_priority: Record<ProjectPriority, number>
+  by_priority_banding: Record<PriorityBanding, number>
   overdue: number
   due_this_week: number
   completed_this_month: number

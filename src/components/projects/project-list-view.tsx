@@ -8,7 +8,7 @@ import { PriorityBadge } from '@/components/ui/priority-badge'
 import { StageBadge } from '@/components/ui/stage-badge'
 import { Tag } from '@/components/ui/tag'
 import { formatDate, formatRelativeDate, isOverdue, getUserDisplayName } from '@/lib/utils'
-import { Calendar, User, MessageSquare, CheckSquare, Plus } from 'lucide-react'
+import { Calendar, User, MessageSquare, CheckSquare, Plus, Target } from 'lucide-react'
 import type { ProjectWithDetails } from '@/lib/types'
 
 interface ProjectListViewProps {
@@ -33,9 +33,11 @@ function ProjectsList({ projects, searchQuery, stageFilter, priorityFilter, sort
         if (!a.due_date) return 1
         if (!b.due_date) return -1
         return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
-      case 'priority':
-        const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 }
-        return priorityOrder[b.priority as keyof typeof priorityOrder] - priorityOrder[a.priority as keyof typeof priorityOrder]
+      case 'priority_banding':
+        const priorityOrder = { P1: 3, P2: 2, P3: 1 }
+        const aPriority = (a.priority_banding as keyof typeof priorityOrder) || 'P3'
+        const bPriority = (b.priority_banding as keyof typeof priorityOrder) || 'P3'
+        return (priorityOrder[bPriority] || 0) - (priorityOrder[aPriority] || 0)
       case 'updated_at':
       default:
         return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
@@ -77,7 +79,12 @@ function ProjectsList({ projects, searchQuery, stageFilter, priorityFilter, sort
                 </Link>
                 <div className="flex items-center gap-2">
                   <StageBadge stage={project.stage} variant="outline" />
-                  <PriorityBadge priority={project.priority} variant="outline" />
+                  {project.priority_banding && (
+                    <Badge variant="outline" className="gap-1">
+                      <Target className="h-3 w-3" />
+                      {project.priority_banding}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>

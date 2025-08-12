@@ -90,14 +90,14 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
     }
 
-    // Log activity
-    await supabase.rpc('log_activity', {
-      p_user_id: currentUser.id,
-      p_action: 'profile_updated',
-      p_entity_type: 'user',
-      p_entity_id: currentUser.id,
-      p_new_values: validatedData
-    })
+    // Log activity (temporarily disabled - log_activity function not available yet)
+    // await supabase.rpc('log_activity', {
+    //   p_user_id: currentUser.id,
+    //   p_action: 'profile_updated',
+    //   p_entity_type: 'user',
+    //   p_entity_id: currentUser.id,
+    //   p_new_values: validatedData
+    // })
 
     return NextResponse.json({ 
       user: updatedUser,

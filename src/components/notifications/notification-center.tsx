@@ -60,9 +60,13 @@ export function NotificationCenter() {
       if (response.ok) {
         const data = await response.json()
         setNotifications(data.notifications || [])
+      } else {
+        // Handle non-OK responses silently for now
+        setNotifications([])
       }
     } catch (error) {
       console.error('Error fetching notifications:', error)
+      setNotifications([]) // Set empty array on error
     } finally {
       setIsLoading(false)
     }

@@ -205,16 +205,18 @@ export function ProjectActionsMenu({
               initialData={{
                 title: project.title,
                 description: project.description || '',
-                priority: project.priority,
-                due_date: project.due_date ? new Date(project.due_date) : undefined,
-                owner_id: project.owner_id || '',
-                budget_amount: project.budget_amount || undefined,
-                estimated_hours: project.estimated_hours || undefined,
+                rfp_title: project.rfp_title || project.title,
                 client_name: project.client_name || '',
-                client_email: project.client_email || '',
-                rfp_document_url: project.rfp_document_url || '',
-                submission_url: project.submission_url || '',
-                tags: project.tags?.map(tag => tag.id) || []
+                state: project.state || '',
+                priority_banding: project.priority_banding as 'P1' | 'P2' | 'P3' | undefined,
+                due_date: project.due_date ? new Date(project.due_date) : undefined,
+                rfp_added_date: project.rfp_added_date ? new Date(project.rfp_added_date) : new Date(),
+                portal_url: project.portal_url || '',
+                folder_url: project.folder_url || '',
+                owner_id: project.owner_id || '',
+                assigned_to: project.assigned_to || '',
+                company_assignment: project.company_assignment || '',
+                review_comment: project.review_comment || ''
               }}
               users={users}
               tags={tags}
