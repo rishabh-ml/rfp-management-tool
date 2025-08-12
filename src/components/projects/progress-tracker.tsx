@@ -11,14 +11,17 @@ import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
 import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { BarChart3, Edit, Save, TrendingUp, Clock, Target } from 'lucide-react'
+import { BarChart3, Edit, Save, TrendingUp, Clock, Target, Settings } from 'lucide-react'
 import { toast } from 'sonner'
-import type { ProjectWithDetails } from '@/lib/types'
+import { useRouter } from 'next/navigation'
+import type { ProjectWithDetails, ProjectStage } from '@/lib/types'
 
 const progressSchema = z.object({
   progress_percentage: z.number().min(0).max(100),
-  status_notes: z.string().optional()
+  status_notes: z.string().optional(),
+  stage: z.enum(['unassigned', 'assigned', 'submitted', 'skipped', 'won', 'lost']).optional()
 })
 
 type ProgressFormData = z.infer<typeof progressSchema>
@@ -32,6 +35,7 @@ interface ProgressTrackerProps {
 export function ProgressTracker({ project, onProgressUpdate, canEdit = true }: ProgressTrackerProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter()
 
   const {
     register,
@@ -44,33 +48,40 @@ export function ProgressTracker({ project, onProgressUpdate, canEdit = true }: P
     resolver: zodResolver(progressSchema),
     defaultValues: {
       progress_percentage: project.progress_percentage || 0,
-      status_notes: project.status_notes || ''
+      status_notes: project.status_notes || '',
+      stage: project.stage
     }
   })
 
   const currentProgress = watch('progress_percentage')
+  const currentStage = watch('stage')
 
   const onSubmit = async (data: ProgressFormData) => {
     setIsSubmitting(true)
     try {
-      const response = await fetch(`/api/projects/${project.id}/progress`, {
+      const response = await fetch(`/api/projects/${project.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          progress_percentage: data.progress_percentage,
+          status_notes: data.status_notes,
+          stage: data.stage
+        })
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update progress')
+        throw new Error('Failed to update project')
       }
 
-      toast.success('Progress updated successfully!')
+      toast.success('Project updated successfully!')
       onProgressUpdate?.(data.progress_percentage, data.status_notes)
       setIsOpen(false)
+      router.refresh() // Refresh to show updated data
     } catch (error) {
-      console.error('Error updating progress:', error)
-      toast.error('Failed to update progress')
+      console.error('Error updating project:', error)
+      toast.error('Failed to update project')
     } finally {
       setIsSubmitting(false)
     }
@@ -82,6 +93,30 @@ export function ProgressTracker({ project, onProgressUpdate, canEdit = true }: P
     if (progress >= 40) return 'bg-yellow-500'
     if (progress >= 20) return 'bg-orange-500'
     return 'bg-red-500'
+  }
+
+  const getStageColor = (stage: ProjectStage) => {
+    switch (stage) {
+      case 'unassigned': return 'bg-gray-500'
+      case 'assigned': return 'bg-blue-500'
+      case 'submitted': return 'bg-purple-500'
+      case 'won': return 'bg-green-500'
+      case 'lost': return 'bg-red-500'
+      case 'skipped': return 'bg-orange-500'
+      default: return 'bg-gray-500'
+    }
+  }
+
+  const getStageLabel = (stage: ProjectStage) => {
+    switch (stage) {
+      case 'unassigned': return 'Unassigned'
+      case 'assigned': return 'In Progress'
+      case 'submitted': return 'Submitted'
+      case 'won': return 'Won'
+      case 'lost': return 'Lost'
+      case 'skipped': return 'Skipped'
+      default: return 'Unknown'
+    }
   }
 
   const getProgressStatus = (progress: number) => {
@@ -102,23 +137,74 @@ export function ProgressTracker({ project, onProgressUpdate, canEdit = true }: P
             <BarChart3 className="h-5 w-5" />
             <CardTitle className="text-base">Project Progress</CardTitle>
           </div>
-          {canEdit && project.stage === 'assigned' && (
+          {canEdit && (
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
-                  <Edit className="mr-2 h-4 w-4" />
+                  <Settings className="mr-2 h-4 w-4" />
                   Update
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Update Project Progress</DialogTitle>
+                  <DialogTitle>Update Project Progress & Stage</DialogTitle>
                   <DialogDescription>
-                    Update the completion percentage and add status notes
+                    Update the project stage, completion percentage, and add status notes
                   </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Project Stage */}
+                  <div className="space-y-2">
+                    <Label>Project Stage</Label>
+                    <Select 
+                      value={currentStage} 
+                      onValueChange={(value) => setValue('stage', value as ProjectStage)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select stage" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unassigned">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                            Unassigned
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="assigned">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            In Progress
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="submitted">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                            Submitted
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="won">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            Won
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="lost">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                            Lost
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="skipped">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                            Skipped
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {/* Progress Slider */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">

@@ -358,6 +358,7 @@ USING (
 -- SUBTASKS
 --------------------------------------------------
 -- Read subtasks on visible projects or assigned to me
+-- Fixed: Removed circular reference to subtasks table in project visibility check
 DROP POLICY IF EXISTS subtasks_read_scoped ON public.subtasks;
 CREATE POLICY subtasks_read_scoped
 ON public.subtasks
@@ -368,14 +369,7 @@ USING (
   OR EXISTS (
     SELECT 1 FROM public.projects p
     WHERE p.id = project_id
-      AND (
-        p.owner_id = public.current_user_id()
-        OR EXISTS (
-          SELECT 1 FROM public.subtasks s
-          WHERE s.project_id = p.id
-            AND s.assigned_to = public.current_user_id()
-        )
-      )
+      AND p.owner_id = public.current_user_id()
   )
 );
 

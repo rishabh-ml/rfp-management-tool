@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const { data: currentUser } = await supabase
       .from('users')
       .select('id, role')
-      .eq('clerk_id', userId)
+      .eq('id', userId)
       .single()
 
     if (!currentUser) {
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('API error:', error)
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid data', details: error.errors }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid data', details: error.issues }, { status: 400 })
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
@@ -128,7 +128,7 @@ export async function GET() {
     const { data: currentUser } = await supabase
       .from('users')
       .select('id, role')
-      .eq('clerk_id', userId)
+      .eq('id', userId)
       .single()
 
     if (!currentUser) {

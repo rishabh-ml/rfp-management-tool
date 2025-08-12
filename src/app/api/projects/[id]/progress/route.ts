@@ -10,7 +10,7 @@ const updateProgressSchema = z.object({
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
@@ -18,7 +18,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const projectId = params.id
+    const { id: projectId } = await params
     const body = await request.json()
     const { progress_percentage, status_notes } = updateProgressSchema.parse(body)
 
@@ -28,7 +28,7 @@ export async function PUT(
     const { data: currentUser } = await supabase
       .from('users')
       .select('id, role')
-      .eq('clerk_id', userId)
+      .eq('id', userId)
       .single()
 
     if (!currentUser) {
@@ -108,7 +108,7 @@ export async function PUT(
   } catch (error) {
     console.error('API error:', error)
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid data', details: error.errors }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid data', details: error.issues }, { status: 400 })
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
@@ -116,7 +116,7 @@ export async function PUT(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
@@ -124,7 +124,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const projectId = params.id
+    const { id: projectId } = await params
     const supabase = await createClerkSupabaseClient()
 
     // Get project progress history

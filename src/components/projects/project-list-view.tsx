@@ -21,29 +21,8 @@ interface ProjectListViewProps {
 
 function ProjectsList({ projects, searchQuery, stageFilter, priorityFilter, sortBy }: ProjectListViewProps) {
   
-  // Apply filters
-  const filteredProjects = projects.filter(project => {
-    // Search filter
-    if (searchQuery && !project.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !project.description?.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false
-    }
-    
-    // Stage filter
-    if (stageFilter !== 'all' && project.stage !== stageFilter) {
-      return false
-    }
-    
-    // Priority filter
-    if (priorityFilter !== 'all' && project.priority !== priorityFilter) {
-      return false
-    }
-    
-    return true
-  })
-
-  // Apply sorting
-  filteredProjects.sort((a, b) => {
+  // Use the already filtered projects from parent - no additional filtering needed
+  const sortedProjects = [...projects].sort((a, b) => {
     switch (sortBy) {
       case 'title':
         return a.title.localeCompare(b.title)
@@ -56,14 +35,14 @@ function ProjectsList({ projects, searchQuery, stageFilter, priorityFilter, sort
         return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
       case 'priority':
         const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 }
-        return priorityOrder[b.priority] - priorityOrder[a.priority]
+        return priorityOrder[b.priority as keyof typeof priorityOrder] - priorityOrder[a.priority as keyof typeof priorityOrder]
       case 'updated_at':
       default:
         return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
     }
   })
 
-  if (filteredProjects.length === 0) {
+  if (sortedProjects.length === 0) {
     return (
       <EmptyState
         icon={<Plus className="h-8 w-8 text-muted-foreground" />}
@@ -85,7 +64,7 @@ function ProjectsList({ projects, searchQuery, stageFilter, priorityFilter, sort
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {filteredProjects.map((project) => (
+      {sortedProjects.map((project) => (
         <Card key={project.id} className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">

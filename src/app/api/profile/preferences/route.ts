@@ -27,13 +27,7 @@ export async function GET() {
     const { data: preferences, error } = await supabase
       .from('user_preferences')
       .select('*')
-      .eq('user_id', (
-        await supabase
-          .from('users')
-          .select('id')
-          .eq('clerk_id', userId)
-          .single()
-      ).data?.id)
+      .eq('user_id', userId)
       .single()
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
@@ -79,7 +73,7 @@ export async function PUT(request: NextRequest) {
     const { data: currentUser } = await supabase
       .from('users')
       .select('id')
-      .eq('clerk_id', userId)
+      .eq('id', userId)
       .single()
 
     if (!currentUser) {
@@ -119,7 +113,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error('API error:', error)
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid data', details: error.errors }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid data', details: error.issues }, { status: 400 })
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

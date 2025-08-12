@@ -4,7 +4,7 @@ import { createClerkSupabaseClient } from '@/lib/supabase'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
@@ -12,14 +12,14 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const notificationId = params.id
+    const { id: notificationId } = await params
     const supabase = await createClerkSupabaseClient()
 
     // Get current user
     const { data: currentUser } = await supabase
       .from('users')
       .select('id')
-      .eq('clerk_id', userId)
+      .eq('id', userId)
       .single()
 
     if (!currentUser) {

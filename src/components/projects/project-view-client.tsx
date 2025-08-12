@@ -35,11 +35,16 @@ export function ProjectViewClient({ projects, users, tags }: ProjectViewClientPr
     field: 'updated_at',
     direction: 'desc'
   })
-  const [filteredProjects, setFilteredProjects] = useState<ProjectWithDetails[]>(projects)
+  const [filteredProjects, setFilteredProjects] = useState<ProjectWithDetails[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [stageFilter, setStageFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [sortBy, setSortBy] = useState('updated_at')
+
+  // Initialize filtered projects when component mounts or projects change
+  useEffect(() => {
+    setFilteredProjects(projects)
+  }, [projects])
 
   useEffect(() => {
     // Apply filters and sorting
@@ -96,7 +101,7 @@ export function ProjectViewClient({ projects, users, tags }: ProjectViewClientPr
 
     if (filters.is_overdue) {
       filtered = filtered.filter(project =>
-        project.due_date && new Date(project.due_date) < new Date() && project.stage !== 'completed'
+        project.due_date && new Date(project.due_date) < new Date() && project.stage !== 'won' && project.stage !== 'submitted'
       )
     }
 
@@ -130,7 +135,11 @@ export function ProjectViewClient({ projects, users, tags }: ProjectViewClientPr
 
   const renderCurrentView = () => {
     const commonProps = {
-      projects: filteredProjects
+      projects: filteredProjects,
+      searchQuery,
+      stageFilter,
+      priorityFilter,
+      sortBy
     }
 
     // Show empty state if no projects

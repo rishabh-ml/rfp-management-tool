@@ -39,12 +39,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create subtask' }, { status: 500 })
     }
 
-    return NextResponse.json(subtask)
+    return NextResponse.json({ subtask })
   } catch (error) {
     console.error('Error in subtasks API:', error)
     
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid request data', details: error.errors }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid request data', details: error.issues }, { status: 400 })
     }
 
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

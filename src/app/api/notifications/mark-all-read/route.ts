@@ -15,7 +15,7 @@ export async function PUT() {
     const { data: currentUser } = await supabase
       .from('users')
       .select('id')
-      .eq('clerk_id', userId)
+      .eq('id', userId)
       .single()
 
     if (!currentUser) {

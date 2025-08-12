@@ -5,8 +5,7 @@ import { z } from 'zod'
 
 const createCommentSchema = z.object({
   projectId: z.string().uuid(),
-  content: z.string().min(1).max(5000),
-  userId: z.string().optional()
+  content: z.string().min(1).max(5000)
 })
 
 export async function POST(request: NextRequest) {
@@ -19,15 +18,12 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json()
-    const { projectId, content, userId: requestUserId } = createCommentSchema.parse(body)
+    const { projectId, content } = createCommentSchema.parse(body)
 
-    // Use authenticated user ID
-    const actualUserId = requestUserId || userId
-
-    // Create comment
+    // Create comment using authenticated user ID
     const comment = await CommentService.createComment({
       project_id: projectId,
-      user_id: actualUserId,
+      user_id: userId,
       content: content
     })
 
@@ -40,7 +36,7 @@ export async function POST(request: NextRequest) {
     console.error('Error in comments API:', error)
     
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid request data', details: error.errors }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid request data', details: error.issues }, { status: 400 })
     }
 
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

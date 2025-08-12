@@ -1,6 +1,7 @@
 import { Sidebar } from '@/components/layout/sidebar'
 import { NotificationCenter } from '@/components/notifications/notification-center'
 import { RealtimeStatus } from '@/components/realtime/realtime-status'
+import { UserSyncProvider } from '@/components/providers/user-sync-provider'
 import { UserButton } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { Search, Settings } from 'lucide-react'
@@ -11,7 +12,8 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-background flex">
+    <UserSyncProvider>
+      <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
       <Sidebar />
 
@@ -49,5 +51,6 @@ export default function DashboardLayout({
         </main>
       </div>
     </div>
+    </UserSyncProvider>
   )
 }

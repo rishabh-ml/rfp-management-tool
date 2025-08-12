@@ -9,7 +9,7 @@ const updateRoleSchema = z.object({
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
@@ -17,7 +17,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const targetUserId = params.id
+    const { id: targetUserId } = await params
     const body = await request.json()
     const { role } = updateRoleSchema.parse(body)
 
@@ -27,7 +27,7 @@ export async function PUT(
     const { data: currentUser } = await supabase
       .from('users')
       .select('id, role')
-      .eq('clerk_id', userId)
+      .eq('id', userId)
       .single()
 
     if (!currentUser) {
