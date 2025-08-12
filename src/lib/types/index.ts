@@ -1,7 +1,9 @@
 // Core domain types for RFP Management Tool
 
-export type ProjectStage = 'unassigned' | 'assigned' | 'submitted' | 'skipped' | 'won' | 'lost'
+export type ProjectStage = 'unassigned' | 'assigned' | 'reviewed' | 'submitted' | 'skipped' | 'won' | 'lost'
 export type ProjectPriority = 'low' | 'medium' | 'high' | 'urgent'
+export type PriorityBanding = 'P1' | 'P2' | 'P3' | 'No bid'
+export type CompanyType = 'DatamanHealth' | 'DatamanUSA' | 'CCSI'
 export type UserRole = 'admin' | 'manager' | 'member'
 
 // User types
@@ -63,6 +65,17 @@ export interface Project {
   is_archived: boolean
   created_at: string
   updated_at: string
+  // New RFP-specific fields
+  rfp_added_date: string | null
+  rfp_title: string | null
+  state: string | null
+  portal_url: string | null
+  folder_url: string | null
+  // Post-review fields
+  priority_banding: PriorityBanding | null
+  review_comment: string | null
+  assigned_to: string | null
+  company_assignment: CompanyType | null
 }
 
 export interface ProjectInsert {
@@ -85,6 +98,17 @@ export interface ProjectInsert {
   is_archived?: boolean
   created_at?: string
   updated_at?: string
+  // New RFP-specific fields
+  rfp_added_date?: string | null
+  rfp_title?: string | null
+  state?: string | null
+  portal_url?: string | null
+  folder_url?: string | null
+  // Post-review fields
+  priority_banding?: PriorityBanding | null
+  review_comment?: string | null
+  assigned_to?: string | null
+  company_assignment?: CompanyType | null
 }
 
 export interface ProjectUpdate {
@@ -105,6 +129,17 @@ export interface ProjectUpdate {
   submission_url?: string | null
   is_archived?: boolean
   updated_at?: string
+  // New RFP-specific fields
+  rfp_added_date?: string | null
+  rfp_title?: string | null
+  state?: string | null
+  portal_url?: string | null
+  folder_url?: string | null
+  // Post-review fields
+  priority_banding?: PriorityBanding | null
+  review_comment?: string | null
+  assigned_to?: string | null
+  company_assignment?: CompanyType | null
 }
 
 // Enhanced project with related data

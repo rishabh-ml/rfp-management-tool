@@ -29,22 +29,47 @@ import {
   X
 } from 'lucide-react'
 import { toast } from 'sonner'
-import type { User as UserType, Tag, CustomAttribute } from '@/lib/types'
+import type { 
+  User as UserType, 
+  Tag, 
+  CustomAttribute, 
+  ProjectStage, 
+  PriorityBanding, 
+  CompanyType 
+} from '@/lib/types'
 
 const projectSchema = z.object({
+  // Basic RFP Information
   title: z.string().min(3, 'Title must be at least 3 characters').max(200, 'Title is too long'),
+  rfp_title: z.string().optional(),
+  client_name: z.string().min(1, 'Client name is required'),
   description: z.string().optional(),
-  priority: z.enum(['low', 'medium', 'high', 'urgent']),
+  state: z.string().optional(),
+  
+  // Dates
+  rfp_added_date: z.date().optional(),
   due_date: z.date().optional(),
+  
+  // URLs
+  portal_url: z.string().url().optional().or(z.literal('')),
+  folder_url: z.string().url().optional().or(z.literal('')),
+  rfp_document_url: z.string().url().optional().or(z.literal('')),
+  submission_url: z.string().url().optional().or(z.literal('')),
+  
+  // Basic fields
+  priority: z.enum(['low', 'medium', 'high', 'urgent']),
   owner_id: z.string().optional(),
   estimated_hours: z.number().min(1).optional(),
   budget_amount: z.number().min(0).optional(),
-  client_name: z.string().optional(),
   client_email: z.string().email().optional().or(z.literal('')),
-  rfp_document_url: z.string().url().optional().or(z.literal('')),
-  submission_url: z.string().url().optional().or(z.literal('')),
   tags: z.array(z.string()).optional(),
-  custom_attributes: z.record(z.any()).optional()
+  custom_attributes: z.record(z.string(), z.any()).optional(),
+  
+  // Post-review fields (conditional)
+  priority_banding: z.enum(['P1', 'P2', 'P3', 'No bid']).optional(),
+  review_comment: z.string().max(1000, 'Review comment cannot exceed 1000 characters').optional(),
+  assigned_to: z.string().optional(),
+  company_assignment: z.enum(['DatamanHealth', 'DatamanUSA', 'CCSI']).optional()
 })
 
 type ProjectFormData = z.infer<typeof projectSchema>
@@ -56,6 +81,7 @@ interface EnhancedProjectFormProps {
   initialData?: Partial<ProjectFormData>
   onSubmit?: (data: ProjectFormData) => void
   isEditing?: boolean
+  currentStage?: ProjectStage
 }
 
 export function EnhancedProjectForm({ 
@@ -64,12 +90,14 @@ export function EnhancedProjectForm({
   customAttributes = [],
   initialData,
   onSubmit,
-  isEditing = false
+  isEditing = false,
+  currentStage = 'unassigned'
 }: EnhancedProjectFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tags || [])
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [showReviewFields, setShowReviewFields] = useState(currentStage === 'reviewed')
 
   const {
     register,
@@ -81,6 +109,7 @@ export function EnhancedProjectForm({
     resolver: zodResolver(projectSchema),
     defaultValues: {
       priority: 'medium',
+      rfp_added_date: initialData?.rfp_added_date ? new Date(initialData.rfp_added_date) : new Date(),
       ...initialData
     }
   })
