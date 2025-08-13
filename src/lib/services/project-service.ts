@@ -32,15 +32,16 @@ export class ProjectService {
         .from('projects')
         .select(`
           *,
-          owner:users!projects_owner_id_fkey(id, first_name, last_name, email, avatar_url, role)
+          owner:users!projects_owner_id_fkey(id, first_name, last_name, email, avatar_url, role),
+          assignee:users!projects_assigned_to_fkey(id, first_name, last_name, email, avatar_url, role)
         `)
 
       // Apply filters
       if (filters?.stage?.length) {
         query = query.in('stage', filters.stage)
       }
-      if (filters?.priority_banding?.length) {
-        query = query.in('priority_banding', filters.priority_banding)
+      if (filters?.priority?.length) {
+        query = query.in('priority', filters.priority)
       }
       if (filters?.owner_id?.length) {
         query = query.in('owner_id', filters.owner_id)
@@ -121,6 +122,7 @@ export class ProjectService {
         .select(`
           *,
           owner:users!projects_owner_id_fkey(id, first_name, last_name, email, avatar_url, role),
+          assignee:users!projects_assigned_to_fkey(id, first_name, last_name, email, avatar_url, role),
           tags:project_tags(tag:tags(id, name, color, created_by)),
           comments:comments(
             id, content, created_at, updated_at,

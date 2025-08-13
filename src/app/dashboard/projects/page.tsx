@@ -13,7 +13,7 @@ export default function ProjectsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
           <p className="text-muted-foreground">
-            Manage all your RFP projects with multiple view options
+            manage your RFP projects with our powerful spreadsheet view and multiple display options
           </p>
         </div>
         <Button asChild>

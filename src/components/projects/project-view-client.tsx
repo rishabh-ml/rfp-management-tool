@@ -6,17 +6,19 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { List, CalendarDays, BarChart3, Search, Filter, SortAsc } from 'lucide-react'
+import { List, CalendarDays, BarChart3, Search, Filter, SortAsc, Grid3x3 } from 'lucide-react'
 import { ProjectListView } from './project-list-view'
 import { ProjectCalendarView } from './project-calendar-view'
 import { ProjectGanttView } from './project-gantt-view'
+import { ProjectSpreadsheetView } from './project-spreadsheet-view'
 import { ProjectFilters, type ProjectFilters as ProjectFiltersType, type SortOptions } from './project-filters'
 // Remove server-side imports - data will be passed as props
 import type { ProjectWithDetails, User, Tag } from '@/lib/types'
 
-type ViewType = 'list' | 'calendar' | 'gantt'
+type ViewType = 'spreadsheet' | 'list' | 'calendar' | 'gantt'
 
 const views = [
+  { id: 'spreadsheet' as ViewType, name: 'Spreadsheet View', icon: Grid3x3 },
   { id: 'list' as ViewType, name: 'List View', icon: List },
   { id: 'calendar' as ViewType, name: 'Calendar View', icon: CalendarDays },
   { id: 'gantt' as ViewType, name: 'Gantt View', icon: BarChart3 }
@@ -29,7 +31,7 @@ interface ProjectViewClientProps {
 }
 
 export function ProjectViewClient({ projects, users, tags }: ProjectViewClientProps) {
-  const [currentView, setCurrentView] = useState<ViewType>('list')
+  const [currentView, setCurrentView] = useState<ViewType>('spreadsheet')
   const [filters, setFilters] = useState<ProjectFiltersType>({})
   const [sortOptions, setSortOptions] = useState<SortOptions>({
     field: 'updated_at',
@@ -158,6 +160,8 @@ export function ProjectViewClient({ projects, users, tags }: ProjectViewClientPr
     }
 
     switch (currentView) {
+      case 'spreadsheet':
+        return <ProjectSpreadsheetView {...commonProps} />
       case 'list':
         return <ProjectListView {...commonProps} />
       case 'calendar':
@@ -165,7 +169,7 @@ export function ProjectViewClient({ projects, users, tags }: ProjectViewClientPr
       case 'gantt':
         return <ProjectGanttView {...commonProps} />
       default:
-        return <ProjectListView {...commonProps} />
+        return <ProjectSpreadsheetView {...commonProps} />
     }
   }
 
@@ -193,7 +197,7 @@ export function ProjectViewClient({ projects, users, tags }: ProjectViewClientPr
                 onClick={() => setCurrentView(view.id)}
                 className={cn(
                   'flex items-center gap-2',
-                  currentView === view.id && 'bg-background shadow-sm'
+                  currentView === view.id && 'bg-primary text-primary-foreground border-primary shadow-sm font-medium'
                 )}
               >
                 <Icon className="h-4 w-4" />

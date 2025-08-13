@@ -33,7 +33,13 @@ import {
   TrendingUp,
   MapPin,
   ExternalLink,
-  Hash
+  Hash,
+  Building2,
+  MessageCircle,
+  FolderOpen,
+  Globe,
+  Star,
+  UserCheck
 } from 'lucide-react'
 
 interface ProjectDetailPageProps {
@@ -80,27 +86,31 @@ async function ProjectDetails({ projectId }: { projectId: string }) {
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
         <div className="space-y-4 flex-1">
           <div className="flex flex-wrap items-center gap-3">
-            <StageBadge stage={project.stage} />
+            <StageBadge key="stage-badge" stage={project.stage} />
+            <PriorityBadge key="priority-badge" priority={project.priority} />
             {project.priority_banding && (
-              <Badge variant="outline" className="gap-1">
-                <Target className="h-3 w-3" />
+              <Badge 
+                key="priority-banding-badge"
+                variant={
+                  project.priority_banding === 'P1' ? 'destructive' :
+                  project.priority_banding === 'P2' ? 'default' :
+                  project.priority_banding === 'P3' ? 'secondary' :
+                  'outline'
+                }
+                className="gap-1"
+              >
+                <Star className="h-3 w-3" />
                 {project.priority_banding}
               </Badge>
             )}
-            {project.company_assignment && (
-              <Badge variant="secondary" className="gap-1">
-                <Users className="h-3 w-3" />
-                {project.company_assignment}
-              </Badge>
-            )}
             {project.budget_amount && (
-              <Badge variant="outline" className="gap-1">
+              <Badge key="budget-badge" variant="outline" className="gap-1">
                 <DollarSign className="h-3 w-3" />
                 ${project.budget_amount.toLocaleString()}
               </Badge>
             )}
             {isOverdue(project.due_date) && (
-              <Badge variant="destructive" className="gap-1">
+              <Badge key="overdue-badge" variant="destructive" className="gap-1">
                 <Clock className="h-3 w-3" />
                 Overdue
               </Badge>
@@ -119,7 +129,7 @@ async function ProjectDetails({ projectId }: { projectId: string }) {
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-6">
             <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
               <TrendingUp className="h-4 w-4 text-blue-600" />
               <div className="text-sm">
@@ -150,6 +160,16 @@ async function ProjectDetails({ projectId }: { projectId: string }) {
                 <div className="text-sm">
                   <div className="font-medium">{project.estimated_hours}h</div>
                   <div className="text-xs text-muted-foreground">Estimated</div>
+                </div>
+              </div>
+            )}
+
+            {project.actual_hours && (
+              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                <Clock className="h-4 w-4 text-green-600" />
+                <div className="text-sm">
+                  <div className="font-medium">{project.actual_hours}h</div>
+                  <div className="text-xs text-muted-foreground">Actual</div>
                 </div>
               </div>
             )}
@@ -252,114 +272,6 @@ async function ProjectDetails({ projectId }: { projectId: string }) {
                 </div>
               )}
 
-              {/* RFP Information */}
-              <div className="space-y-4">
-                <Label className="text-sm font-medium flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  RFP Details
-                </Label>
-                <div className="space-y-3">
-                  {project.rfp_title && project.rfp_title !== project.title && (
-                    <div className="space-y-1">
-                      <div className="text-xs font-medium text-muted-foreground uppercase">RFP Title</div>
-                      <div className="text-sm">{project.rfp_title}</div>
-                    </div>
-                  )}
-                  {project.rfp_added_date && (
-                    <div className="space-y-1">
-                      <div className="text-xs font-medium text-muted-foreground uppercase">RFP Added</div>
-                      <div className="text-sm">{formatDate(project.rfp_added_date)}</div>
-                    </div>
-                  )}
-                  {project.state && (
-                    <div className="space-y-1">
-                      <div className="text-xs font-medium text-muted-foreground uppercase">State</div>
-                      <div className="text-sm flex items-center gap-2">
-                        <MapPin className="h-3 w-3" />
-                        {project.state}
-                      </div>
-                    </div>
-                  )}
-                  {(project.portal_url || project.folder_url) && (
-                    <div className="space-y-2">
-                      <div className="text-xs font-medium text-muted-foreground uppercase">Links</div>
-                      <div className="space-y-1">
-                        {project.portal_url && (
-                          <a 
-                            href={project.portal_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            Portal URL
-                          </a>
-                        )}
-                        {project.folder_url && (
-                          <a 
-                            href={project.folder_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            Folder URL
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Assignment Information */}
-              {(project.assigned_to || project.company_assignment) && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Assignment
-                  </Label>
-                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
-                    {project.assigned_to && (
-                      <div>
-                        <div className="text-xs font-medium text-muted-foreground uppercase">Assigned To</div>
-                        <div className="text-sm">{project.assigned_to}</div>
-                      </div>
-                    )}
-                    {project.company_assignment && (
-                      <div>
-                        <div className="text-xs font-medium text-muted-foreground uppercase">Company</div>
-                        <div className="text-sm">{project.company_assignment}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Post-Review Information */}
-              {(project.priority_banding || project.review_comment) && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium flex items-center gap-2">
-                    <Target className="h-4 w-4" />
-                    Review Information
-                  </Label>
-                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
-                    {project.priority_banding && (
-                      <div>
-                        <div className="text-xs font-medium text-muted-foreground uppercase">Priority Banding</div>
-                        <div className="text-sm">{project.priority_banding}</div>
-                      </div>
-                    )}
-                    {project.review_comment && (
-                      <div>
-                        <div className="text-xs font-medium text-muted-foreground uppercase">Review Comment</div>
-                        <div className="text-sm">{project.review_comment}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
               {/* Client Information */}
               {(project.client_name || project.client_email) && (
                 <div className="space-y-2">
@@ -378,47 +290,186 @@ async function ProjectDetails({ projectId }: { projectId: string }) {
                 </div>
               )}
 
+              {/* RFP Information */}
+              {(project.rfp_title || project.rfp_added_date || project.state) && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    RFP Details
+                  </Label>
+                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                    {project.rfp_title && (
+                      <div>
+                        <div className="text-xs text-muted-foreground">RFP Title</div>
+                        <div className="font-medium text-sm">{project.rfp_title}</div>
+                      </div>
+                    )}
+                    {project.rfp_added_date && (
+                      <div>
+                        <div className="text-xs text-muted-foreground">Added Date</div>
+                        <div className="font-medium text-sm">{formatDate(project.rfp_added_date)}</div>
+                      </div>
+                    )}
+                    {project.state && (
+                      <div>
+                        <div className="text-xs text-muted-foreground">State</div>
+                        <div className="font-medium text-sm">{project.state}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Assignment Information */}
+              {(project.assigned_to || project.company_assignment || project.priority_banding) && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <UserCheck className="h-4 w-4" />
+                    Assignment Details
+                  </Label>
+                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                    {project.assigned_to && (
+                      <div>
+                        <div className="text-xs text-muted-foreground">Assigned To</div>
+                        <div className="font-medium text-sm">{project.assigned_to}</div>
+                      </div>
+                    )}
+                    {project.company_assignment && (
+                      <div>
+                        <div className="text-xs text-muted-foreground">Company</div>
+                        <div className="font-medium text-sm flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          {project.company_assignment}
+                        </div>
+                      </div>
+                    )}
+                    {project.priority_banding && (
+                      <div>
+                        <div className="text-xs text-muted-foreground">Priority Banding</div>
+                        <Badge 
+                          variant={
+                            project.priority_banding === 'P1' ? 'destructive' :
+                            project.priority_banding === 'P2' ? 'default' :
+                            project.priority_banding === 'P3' ? 'secondary' :
+                            'outline'
+                          }
+                          className="text-xs"
+                        >
+                          <Star className="h-3 w-3 mr-1" />
+                          {project.priority_banding}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Review Comments */}
+              {project.review_comment && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4" />
+                    Review Comments
+                  </Label>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      {project.review_comment}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Status Notes */}
+              {project.status_notes && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Status Notes
+                  </Label>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      {project.status_notes}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Budget & Hours */}
-              {(project.budget_amount || project.estimated_hours) && (
-                <div className="grid grid-cols-2 gap-4">
-                  {project.budget_amount && (
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium flex items-center gap-2">
-                        <DollarSign className="h-4 w-4" />
-                        Budget
-                      </Label>
+              {(project.budget_amount || project.estimated_hours || project.actual_hours) && (
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Budget & Time
+                  </Label>
+                  <div className="space-y-3">
+                    {project.budget_amount && (
                       <div className="p-3 bg-muted/50 rounded-lg">
+                        <div className="text-xs text-muted-foreground">Budget</div>
                         <div className="font-medium text-sm">
                           ${project.budget_amount.toLocaleString()}
                         </div>
                       </div>
-                    </div>
-                  )}
-                  
-                  {project.estimated_hours && (
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        Hours
-                      </Label>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <div className="font-medium text-sm">
-                          {project.estimated_hours}h
-                        </div>
+                    )}
+                    
+                    {(project.estimated_hours || project.actual_hours) && (
+                      <div className="grid grid-cols-2 gap-2">
+                        {project.estimated_hours && (
+                          <div className="p-3 bg-muted/50 rounded-lg">
+                            <div className="text-xs text-muted-foreground">Estimated</div>
+                            <div className="font-medium text-sm flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {project.estimated_hours}h
+                            </div>
+                          </div>
+                        )}
+                        
+                        {project.actual_hours && (
+                          <div className="p-3 bg-muted/50 rounded-lg">
+                            <div className="text-xs text-muted-foreground">Actual</div>
+                            <div className="font-medium text-sm flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {project.actual_hours}h
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               )}
 
               {/* Links */}
-              {(project.rfp_document_url || project.submission_url) && (
+              {(project.rfp_document_url || project.submission_url || project.portal_url || project.folder_url) && (
                 <div className="space-y-3">
                   <Label className="text-sm font-medium flex items-center gap-2">
                     <FileText className="h-4 w-4" />
-                    Documents
+                    Links & Documents
                   </Label>
                   <div className="space-y-2">
+                    {project.portal_url && (
+                      <a 
+                        href={project.portal_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-2 text-sm bg-muted/50 hover:bg-muted transition-colors rounded-lg"
+                      >
+                        <Globe className="h-4 w-4 text-blue-600" />
+                        Portal URL
+                        <ExternalLink className="ml-auto h-3 w-3" />
+                      </a>
+                    )}
+                    {project.folder_url && (
+                      <a 
+                        href={project.folder_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-2 text-sm bg-muted/50 hover:bg-muted transition-colors rounded-lg"
+                      >
+                        <FolderOpen className="h-4 w-4 text-orange-600" />
+                        Folder URL
+                        <ExternalLink className="ml-auto h-3 w-3" />
+                      </a>
+                    )}
                     {project.rfp_document_url && (
                       <a 
                         href={project.rfp_document_url} 
@@ -426,7 +477,7 @@ async function ProjectDetails({ projectId }: { projectId: string }) {
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 p-2 text-sm bg-muted/50 hover:bg-muted transition-colors rounded-lg"
                       >
-                        <FileText className="h-4 w-4" />
+                        <FileText className="h-4 w-4 text-green-600" />
                         RFP Document
                         <ExternalLink className="ml-auto h-3 w-3" />
                       </a>
@@ -438,7 +489,7 @@ async function ProjectDetails({ projectId }: { projectId: string }) {
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 p-2 text-sm bg-muted/50 hover:bg-muted transition-colors rounded-lg"
                       >
-                        <ExternalLink className="h-4 w-4" />
+                        <ExternalLink className="h-4 w-4 text-purple-600" />
                         Submission Portal
                         <ExternalLink className="ml-auto h-3 w-3" />
                       </a>
