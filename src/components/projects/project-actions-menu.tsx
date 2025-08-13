@@ -296,7 +296,7 @@ export function ProjectActionsMenu({
                   <DialogHeader>
                     <DialogTitle>Delete Project</DialogTitle>
                     <DialogDescription>
-                      Are you sure you want to delete "{project.title}"? This action cannot be undone.
+                      Are you sure you want to delete &ldquo;{project.title}&rdquo;? This action cannot be undone.
                       All subtasks, comments, and related data will be permanently removed.
                     </DialogDescription>
                   </DialogHeader>

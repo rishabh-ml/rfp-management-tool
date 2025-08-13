@@ -250,7 +250,7 @@ export default function TestWebhookPage() {
             <h4 className="font-medium">1. Configure Webhook in Clerk Dashboard</h4>
             <ul className="text-sm text-muted-foreground space-y-1 ml-4">
               <li>• Go to Clerk Dashboard → Webhooks</li>
-              <li>• Click "Add endpoint"</li>
+              <li>• Click &ldquo;Add endpoint&rdquo;</li>
               <li>• Set endpoint URL to: <code className="bg-muted px-1 rounded">https://your-domain.com/api/webhooks/clerk</code></li>
               <li>• Select events: <code className="bg-muted px-1 rounded">user.created</code>, <code className="bg-muted px-1 rounded">user.updated</code>, <code className="bg-muted px-1 rounded">user.deleted</code></li>
             </ul>

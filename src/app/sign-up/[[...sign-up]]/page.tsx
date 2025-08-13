@@ -60,7 +60,7 @@ export default function SignUpPage() {
 
           <div className="bg-white/50 backdrop-blur p-4 rounded-lg border">
             <p className="text-sm text-muted-foreground">
-              "              This platform has transformed how we handle RFPs. Our response time improved by 60% and our win rate increased significantly."
+              &ldquo;This platform has transformed how we handle RFPs. Our response time improved by 60% and our win rate increased significantly.&rdquo;
             </p>
             <p className="text-sm font-medium mt-2">— Sarah Johnson, Project Manager</p>
           </div>

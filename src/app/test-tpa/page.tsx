@@ -295,7 +295,7 @@ export default function TestTPAPage() {
         <Card>
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">
-              Click "Run Integration Tests" to test the Clerk + Supabase TPA integration
+              Click &ldquo;Run Integration Tests&rdquo; to test the Clerk + Supabase TPA integration
             </p>
           </CardContent>
         </Card>

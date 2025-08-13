@@ -45,7 +45,7 @@ const Collapsible = React.forwardRef<HTMLDivElement, CollapsibleProps>(
 )
 Collapsible.displayName = "Collapsible"
 
-interface CollapsibleTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+type CollapsibleTriggerProps = React.ButtonHTMLAttributes<HTMLButtonElement>
 
 const CollapsibleTrigger = React.forwardRef<HTMLButtonElement, CollapsibleTriggerProps>(
   ({ className, children, ...props }, ref) => (

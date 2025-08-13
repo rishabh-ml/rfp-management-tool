@@ -346,7 +346,7 @@ export function ProjectFilters({
           {filters.search && (
             <Badge variant="secondary" className="gap-1">
               <Search className="h-3 w-3" />
-              "              {filters.search}"
+              &ldquo;{filters.search}&rdquo;
               <button onClick={() => clearFilter('search')}>
                 <X className="h-3 w-3" />
               </button>
