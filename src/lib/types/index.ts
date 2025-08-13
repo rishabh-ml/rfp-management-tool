@@ -14,8 +14,8 @@ export interface User {
   last_name: string | null
   avatar_url: string | null
   role: UserRole
-  is_active: boolean
-  last_login_at: string | null
+  is_active?: boolean           // made optional to accommodate partial loads
+  last_login_at?: string | null // made optional to accommodate partial loads
   created_at: string
   updated_at: string
   // Extended profile fields
@@ -169,6 +169,11 @@ export interface ProjectWithDetails extends Project {
   tags?: Tag[]
   comments?: CommentWithUser[]
   subtasks?: SubtaskWithUser[]
+  // Optional UI-only / derived fields (for legacy components)
+  startDate?: string
+  endDate?: string
+  progress?: number
+  subtasksCount?: number
   _count?: {
     comments: number
     subtasks: number

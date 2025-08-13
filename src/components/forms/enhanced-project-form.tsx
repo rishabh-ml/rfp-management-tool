@@ -11,27 +11,16 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { DatePicker } from '@/components/ui/date-picker'
-import { Separator } from '@/components/ui/separator'
-import { Switch } from '@/components/ui/switch'
 import { 
-  FolderOpen, 
-  Calendar, 
   User, 
-  DollarSign, 
-  Clock, 
   FileText,
-  Link as LinkIcon,
-  Tag as TagIcon,
-  Plus,
-  X
+  Link as LinkIcon
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { 
   User as UserType, 
-  Tag, 
   CustomAttribute, 
   ProjectStage 
 } from '@/lib/types'
@@ -64,7 +53,6 @@ type ProjectFormData = z.infer<typeof projectSchema>
 
 interface EnhancedProjectFormProps {
   users?: UserType[]
-  tags?: Tag[]
   customAttributes?: CustomAttribute[]
   initialData?: Partial<ProjectFormData & { id?: string }>
   onSubmit?: (data: ProjectFormData) => void
@@ -74,7 +62,6 @@ interface EnhancedProjectFormProps {
 
 export function EnhancedProjectForm({ 
   users = [], 
-  tags = [], 
   customAttributes = [],
   initialData,
   onSubmit,
@@ -103,8 +90,6 @@ export function EnhancedProjectForm({
       ...initialData
     }
   })
-
-  const watchedFields = watch()
 
   useEffect(() => {
     if (initialData) {

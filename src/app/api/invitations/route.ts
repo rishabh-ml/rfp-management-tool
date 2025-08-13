@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { emails, role, message } = createInvitationSchema.parse(body)
+    const { emails, role } = createInvitationSchema.parse(body)
 
     const supabase = await createClerkSupabaseClient()
 

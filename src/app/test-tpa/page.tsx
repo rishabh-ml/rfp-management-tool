@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useUser, useSession } from '@clerk/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { Button } from '@/components/ui/button'
@@ -97,7 +97,7 @@ export default function TestTPAPage() {
 
       // Test 4: Database Connection
       try {
-        const { data, error } = await client
+        const { error } = await client
           .from('users')
           .select('count', { count: 'exact', head: true })
 

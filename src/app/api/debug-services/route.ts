@@ -8,13 +8,13 @@ export async function GET() {
     console.log('Testing individual services...')
     
     const results = {
-      users: null,
-      tags: null,
-      projects: null,
+      users: null as any,
+      tags: null as any,
+      projects: null as any,
       errors: {
-        users: null,
-        tags: null,
-        projects: null
+        users: null as string | null,
+        tags: null as string | null,
+        projects: null as string | null
       }
     }
     

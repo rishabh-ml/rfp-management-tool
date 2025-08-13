@@ -7,9 +7,9 @@ export async function GET() {
     console.log('Testing RLS and authentication...')
     
     const results = {
-      withAuth: {},
-      withoutAuth: {},
-      authStatus: null
+      withAuth: {} as any,
+      withoutAuth: {} as any,
+      authStatus: null as string | null
     }
     
     // Test with Clerk authentication
@@ -17,7 +17,7 @@ export async function GET() {
       console.log('Testing with Clerk auth...')
       const clerkSupabase = await createClerkSupabaseClient()
       
-      const { data: authUser, error: userError } = await clerkSupabase.auth.getUser()
+      const { data: authUser } = await clerkSupabase.auth.getUser()
       results.authStatus = authUser ? 'authenticated' : 'not authenticated'
       
       const { data: projects, error: projectsError } = await clerkSupabase

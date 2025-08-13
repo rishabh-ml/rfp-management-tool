@@ -2,14 +2,13 @@ import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { PriorityBadge } from '@/components/ui/priority-badge'
 import { StageBadge } from '@/components/ui/stage-badge'
 import { Tag } from '@/components/ui/tag'
-import { ProgressBar } from '@/components/ui/progress-bar'
 import { CommentsSection } from '@/components/comments/comments-section'
 import { SubtasksSection } from '@/components/subtasks/subtasks-section'
 import { ProgressTracker } from '@/components/projects/progress-tracker'
@@ -23,15 +22,12 @@ import {
   User,
   MessageSquare,
   CheckSquare,
-  Edit,
-  MoreHorizontal,
   Clock,
   DollarSign,
   FileText,
   Users,
   Target,
   TrendingUp,
-  MapPin,
   ExternalLink,
   Hash,
   Building2,

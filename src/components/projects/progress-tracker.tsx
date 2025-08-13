@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { BarChart3, Edit, Save, TrendingUp, Clock, Target, Settings } from 'lucide-react'
+import { BarChart3, Save, TrendingUp, Clock, Target, Settings } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import type { ProjectWithDetails, ProjectStage } from '@/lib/types'
@@ -21,7 +21,7 @@ import type { ProjectWithDetails, ProjectStage } from '@/lib/types'
 const progressSchema = z.object({
   progress_percentage: z.number().min(0).max(100),
   status_notes: z.string().optional(),
-  stage: z.enum(['unassigned', 'assigned', 'submitted', 'skipped', 'won', 'lost']).optional()
+  stage: z.enum(['unassigned', 'assigned', 'reviewed', 'submitted', 'skipped', 'won', 'lost']).optional()
 })
 
 type ProgressFormData = z.infer<typeof progressSchema>
@@ -33,17 +33,15 @@ interface ProgressTrackerProps {
 }
 
 export function ProgressTracker({ project, onProgressUpdate, canEdit = true }: ProgressTrackerProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+  const [isOpen, setIsOpen] = useState(false)
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
-    reset,
-    formState: { errors }
+    formState: { isSubmitting }
   } = useForm<ProgressFormData>({
     resolver: zodResolver(progressSchema),
     defaultValues: {
@@ -57,7 +55,6 @@ export function ProgressTracker({ project, onProgressUpdate, canEdit = true }: P
   const currentStage = watch('stage')
 
   const onSubmit = async (data: ProgressFormData) => {
-    setIsSubmitting(true)
     try {
       const response = await fetch(`/api/projects/${project.id}`, {
         method: 'PUT',
@@ -82,8 +79,6 @@ export function ProgressTracker({ project, onProgressUpdate, canEdit = true }: P
     } catch (error) {
       console.error('Error updating project:', error)
       toast.error('Failed to update project')
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -93,30 +88,6 @@ export function ProgressTracker({ project, onProgressUpdate, canEdit = true }: P
     if (progress >= 40) return 'bg-yellow-500'
     if (progress >= 20) return 'bg-orange-500'
     return 'bg-red-500'
-  }
-
-  const getStageColor = (stage: ProjectStage) => {
-    switch (stage) {
-      case 'unassigned': return 'bg-gray-500'
-      case 'assigned': return 'bg-blue-500'
-      case 'submitted': return 'bg-purple-500'
-      case 'won': return 'bg-green-500'
-      case 'lost': return 'bg-red-500'
-      case 'skipped': return 'bg-orange-500'
-      default: return 'bg-gray-500'
-    }
-  }
-
-  const getStageLabel = (stage: ProjectStage) => {
-    switch (stage) {
-      case 'unassigned': return 'Unassigned'
-      case 'assigned': return 'In Progress'
-      case 'submitted': return 'Submitted'
-      case 'won': return 'Won'
-      case 'lost': return 'Lost'
-      case 'skipped': return 'Skipped'
-      default: return 'Unknown'
-    }
   }
 
   const getProgressStatus = (progress: number) => {
@@ -159,7 +130,7 @@ export function ProgressTracker({ project, onProgressUpdate, canEdit = true }: P
                     <Label>Project Stage</Label>
                     <Select 
                       value={currentStage} 
-                      onValueChange={(value) => setValue('stage', value as ProjectStage)}
+                      onValueChange={(value) => setValue('stage', value as any)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select stage" />

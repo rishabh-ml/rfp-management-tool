@@ -12,9 +12,9 @@ export async function GET() {
     const supabase = await createClerkSupabaseClient()
 
     // Test basic connection
-    const { data: connectionTest, error: connectionError } = await supabase
+    const { count: userCount, error: connectionError } = await supabase
       .from('users')
-      .select('count', { count: 'exact', head: true })
+      .select('*', { count: 'exact', head: true })
 
     if (connectionError) {
       return NextResponse.json({ 
@@ -29,9 +29,9 @@ export async function GET() {
     }
 
     // Test projects table
-    const { data: projectsTest, error: projectsError } = await supabase
+    const { count: projectsCount, error: projectsError } = await supabase
       .from('projects')
-      .select('count', { count: 'exact', head: true })
+      .select('*', { count: 'exact', head: true })
 
     if (projectsError) {
       return NextResponse.json({ 
@@ -47,8 +47,8 @@ export async function GET() {
 
     return NextResponse.json({ 
       message: 'Database connection successful',
-      user_count: connectionTest?.count || 0,
-      projects_count: projectsTest?.count || 0,
+  user_count: userCount || 0,
+  projects_count: projectsCount || 0,
       user_id: userId
     })
   } catch (error) {

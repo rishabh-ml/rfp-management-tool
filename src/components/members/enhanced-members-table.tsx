@@ -38,9 +38,6 @@ import {
   Shield, 
   UserCheck, 
   User, 
-  Mail, 
-  Edit, 
-  Trash2,
   UserX,
   UserPlus,
   AlertTriangle
@@ -58,7 +55,6 @@ export function EnhancedMembersTable({ users, currentUser }: EnhancedMembersTabl
   const [roleFilter, setRoleFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 

@@ -97,7 +97,7 @@ export function AttributeForm({ onAttributeCreated, initialData, isEditing = fal
     reset,
     formState: { errors }
   } = useForm<AttributeFormData>({
-    resolver: zodResolver(attributeSchema),
+    resolver: zodResolver(attributeSchema) as any,
     defaultValues: {
       is_required: false,
       ...initialData
@@ -158,11 +158,6 @@ export function AttributeForm({ onAttributeCreated, initialData, isEditing = fal
     }
   }
 
-  const getTypeIcon = (type: string) => {
-    const typeConfig = attributeTypes.find(t => t.value === type)
-    return typeConfig?.icon || Type
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -179,7 +174,7 @@ export function AttributeForm({ onAttributeCreated, initialData, isEditing = fal
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-6">
           {/* Basic Information */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">

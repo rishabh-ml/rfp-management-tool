@@ -40,8 +40,8 @@ export class ProjectService {
       if (filters?.stage?.length) {
         query = query.in('stage', filters.stage)
       }
-      if (filters?.priority?.length) {
-        query = query.in('priority', filters.priority)
+      if (filters?.priority_banding?.length) {
+        query = query.in('priority_banding', filters.priority_banding)
       }
       if (filters?.owner_id?.length) {
         query = query.in('owner_id', filters.owner_id)

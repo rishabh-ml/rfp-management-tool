@@ -16,7 +16,6 @@ import {
   Download,
   Trash2,
   ExternalLink,
-  Settings,
   FileText
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -150,7 +149,7 @@ export function ProjectActionsMenu({
     try {
       await navigator.clipboard.writeText(shareUrl)
       toast.success('Project link copied to clipboard!')
-    } catch (error) {
+    } catch {
       toast.error('Failed to copy link')
     }
   }
@@ -219,7 +218,6 @@ export function ProjectActionsMenu({
                 review_comment: project.review_comment || ''
               }}
               users={users}
-              tags={tags}
               customAttributes={customAttributes}
               onSubmit={handleEditProject}
               isEditing={true}

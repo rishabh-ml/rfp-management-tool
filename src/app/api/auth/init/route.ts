@@ -28,7 +28,7 @@ export async function POST() {
     }
 
     // Create user record using the database function
-    const { data: newUser, error } = await supabase
+    const { error } = await supabase
       .rpc('sync_user_from_clerk', {
         p_id: userId,
         p_email: clerkUser.emailAddresses[0]?.emailAddress || '',

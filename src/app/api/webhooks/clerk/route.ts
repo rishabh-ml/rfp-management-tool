@@ -5,9 +5,9 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
 // Environment variables validation
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-const webhookSecret = process.env.CLERK_WEBHOOK_SECRET
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const webhookSecret = process.env.CLERK_WEBHOOK_SECRET!
 
 if (!supabaseUrl || !supabaseServiceKey || !webhookSecret) {
   throw new Error('Missing required environment variables for Clerk webhook')
@@ -142,7 +142,7 @@ export async function POST(req: Request) {
     const payload = await req.text()
 
     // Create a new Svix instance with your secret
-    const wh = new Webhook(webhookSecret)
+  const wh = new Webhook(webhookSecret)
 
     let evt: WebhookEvent
 

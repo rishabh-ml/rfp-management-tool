@@ -12,6 +12,11 @@ export const PROJECT_STAGES: Record<ProjectStage, { label: string; color: string
     color: '#3B82F6', // blue-500
     description: 'RFPs assigned to team members'
   },
+  reviewed: {
+    label: 'Reviewed',
+    color: '#6366F1', // indigo-500
+    description: 'RFPs that have been reviewed'
+  },
   submitted: {
     label: 'Submitted',
     color: '#F59E0B', // amber-500

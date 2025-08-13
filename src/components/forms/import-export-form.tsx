@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -19,7 +18,6 @@ import {
   FileSpreadsheet, 
   Database,
   CheckCircle,
-  AlertCircle,
   X,
   FileDown,
   FileUp
@@ -128,7 +126,7 @@ export function ImportExportForm({ onClose }: ImportExportFormProps) {
       const params = new URLSearchParams({
         format: exportFormat,
         ...Object.entries(exportOptions)
-          .filter(([_, value]) => value === true)
+          .filter(([, value]) => value === true)
           .reduce((acc, [key]) => ({ ...acc, [key]: 'true' }), {}),
         dateRange: exportOptions.dateRange
       })

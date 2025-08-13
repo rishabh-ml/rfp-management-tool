@@ -66,7 +66,7 @@ export async function GET() {
     }
 
     // Check if user exists in database
-    const exists = await UserSyncService.checkUserExists(userId)
+  const exists = await UserSyncService.userExists(userId)
 
     return NextResponse.json({
       success: true,

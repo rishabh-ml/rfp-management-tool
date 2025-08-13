@@ -14,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePicker } from '@/components/ui/date-picker'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 // Remove server-side imports - using API routes instead
-import { PROJECT_PRIORITIES } from '@/lib/constants'
 import { toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'

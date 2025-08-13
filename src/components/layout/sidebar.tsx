@@ -133,21 +133,10 @@ export function Sidebar({ className }: SidebarProps) {
               {!collapsed && (
                 <>
                   <span className="flex-1">{item.name}</span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="ml-auto">
-                      {item.badge}
-                    </Badge>
-                  )}
+          {/* badge removed - property not defined in navigation items */}
                 </>
               )}
-              {collapsed && item.badge && (
-                <Badge 
-                  variant="secondary" 
-                  className="absolute left-8 top-1 h-2 w-2 p-0 flex items-center justify-center text-xs"
-                >
-                  {item.badge}
-                </Badge>
-              )}
+        {/* collapsed badge removed */}
             </Link>
           )
         })}

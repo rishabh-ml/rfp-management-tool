@@ -202,7 +202,6 @@ export async function AttributesList() {
                       <Switch
                         checked={attribute.is_active}
                         onCheckedChange={(checked) => handleToggleActive(attribute.id, checked)}
-                        size="sm"
                       />
                       <span className="text-sm text-muted-foreground">
                         {attribute.is_active ? 'Active' : 'Inactive'}

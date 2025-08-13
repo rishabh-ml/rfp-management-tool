@@ -26,7 +26,7 @@ export async function PUT(
     // Get current user
     const { data: currentUser } = await supabase
       .from('users')
-      .select('id, role')
+      .select('id, role, first_name, last_name')
       .eq('id', userId)
       .single()
 
@@ -100,7 +100,8 @@ export async function PUT(
   } catch (error) {
     console.error('API error:', error)
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid data', details: error.errors }, { status: 400 })
+  // Use 'issues' for Zod validation details
+  return NextResponse.json({ error: 'Invalid data', details: error.issues }, { status: 400 })
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

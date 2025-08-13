@@ -69,9 +69,15 @@ export function ProjectGanttView({ projects, searchQuery, stageFilter, priorityF
   })
 
   // Ensure project has valid dates
-  const projectsWithDates = ganttProjects.filter(project => 
-    project.startDate && project.endDate
-  )
+  // Normalize legacy/optional date & progress fields
+  const normalizedProjects = ganttProjects.map(p => ({
+    ...p,
+    startDate: p.startDate || p.due_date || p.rfp_added_date || undefined,
+    endDate: p.endDate || p.due_date || p.rfp_added_date || undefined,
+    progress: typeof p.progress === 'number' ? p.progress : p.progress_percentage
+  }))
+
+  const projectsWithDates = normalizedProjects.filter(project => project.startDate && project.endDate) as Array<Required<Pick<typeof normalizedProjects[number], 'startDate' | 'endDate'>> & typeof normalizedProjects[number]>
 
   // Helper functions for Gantt calculations
   const getDatePosition = (date: string) => {
@@ -202,16 +208,16 @@ export function ProjectGanttView({ projects, searchQuery, stageFilter, priorityF
                             'bg-purple-500'
                           }`}
                           style={{
-                            left: `${getProjectPosition(project.startDate)}%`,
-                            width: `${Math.max(getProjectWidth(project.startDate, project.endDate), 5)}%`
+                            left: `${getProjectPosition(project.startDate!)}%`,
+                            width: `${Math.max(getProjectWidth(project.startDate!, project.endDate!), 5)}%`
                           }}
                         >
                           <div className="flex items-center justify-between w-full">
-                            <span className="truncate">{project.progress}%</span>
-                            {project.progress > 0 && (
+              <span className="truncate">{project.progress ?? 0}%</span>
+              {(project.progress ?? 0) > 0 && (
                               <div 
                                 className="bg-white/30 h-1 rounded ml-2"
-                                style={{ width: `${Math.min(project.progress, 100)}%` }}
+                style={{ width: `${Math.min(project.progress ?? 0, 100)}%` }}
                               />
                             )}
                           </div>
@@ -220,7 +226,7 @@ export function ProjectGanttView({ projects, searchQuery, stageFilter, priorityF
 
                       {/* Duration */}
                       <div className="w-20 text-xs text-muted-foreground text-right">
-                        {getProjectDuration(project.startDate, project.endDate)} days
+                        {getProjectDuration(project.startDate!, project.endDate!)} days
                       </div>
                     </div>
                   ))}
@@ -290,20 +296,20 @@ export function ProjectGanttView({ projects, searchQuery, stageFilter, priorityF
                   <span className="text-muted-foreground">Avg Progress:</span>
                   <span className="font-medium">
                     {projectsWithDates.length > 0 
-                      ? Math.round(projectsWithDates.reduce((sum, p) => sum + p.progress, 0) / projectsWithDates.length)
+                      ? Math.round(projectsWithDates.reduce((sum, p) => sum + (p.progress ?? 0), 0) / projectsWithDates.length)
                       : 0}%
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">On Track:</span>
                   <span className="font-medium text-green-600">
-                    {projectsWithDates.filter(p => p.progress >= 70).length}
+                    {projectsWithDates.filter(p => (p.progress ?? 0) >= 70).length}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">At Risk:</span>
                   <span className="font-medium text-orange-600">
-                    {projectsWithDates.filter(p => p.progress < 30 && p.stage === 'assigned').length}
+                    {projectsWithDates.filter(p => (p.progress ?? 0) < 30 && p.stage === 'assigned').length}
                   </span>
                 </div>
                 <div className="flex justify-between">

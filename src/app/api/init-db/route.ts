@@ -60,9 +60,9 @@ export async function POST() {
     }
 
     // Test projects table access
-    const { data: projectsTest, error: projectsError } = await supabase
+    const { count: projectsCount, error: projectsError } = await supabase
       .from('projects')
-      .select('count', { count: 'exact', head: true })
+      .select('*', { count: 'exact', head: true })
 
     if (projectsError) {
       console.error('Projects table error:', projectsError)
@@ -76,7 +76,7 @@ export async function POST() {
     return NextResponse.json({ 
       message: 'Database initialized successfully',
       user: user,
-      projects_count: projectsTest?.count || 0
+      projects_count: projectsCount || 0
     })
   } catch (error) {
     console.error('Database initialization error:', error)

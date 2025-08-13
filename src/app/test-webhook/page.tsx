@@ -28,13 +28,6 @@ export default function TestWebhookPage() {
   const [isChecking, setIsChecking] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
 
-  // Check sync status on load
-  useEffect(() => {
-    if (isLoaded && user) {
-      checkSyncStatus()
-    }
-  }, [isLoaded, user])
-
   const checkSyncStatus = async () => {
     if (!user) return
 
@@ -55,6 +48,13 @@ export default function TestWebhookPage() {
       setIsChecking(false)
     }
   }
+
+  // Check sync status on load
+  useEffect(() => {
+    if (isLoaded && user) {
+      checkSyncStatus()
+    }
+  }, [isLoaded, user, checkSyncStatus])
 
   const syncUser = async () => {
     if (!user) return

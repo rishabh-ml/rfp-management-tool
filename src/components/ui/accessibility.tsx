@@ -1,5 +1,6 @@
 'use client'
 
+import * as React from 'react'
 import { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
 
@@ -152,8 +153,8 @@ export function AccessibleButton({
 }
 
 // Accessible form field with proper labeling
-interface AccessibleFieldProps {
-  children: React.ReactNode
+interface AccessibleFieldProps<T extends React.ElementType = any> {
+  children: React.ReactElement<any, T>
   label: string
   id: string
   error?: string
@@ -195,12 +196,15 @@ export function AccessibleField({
       )}
       
       <div>
-        {React.cloneElement(children as React.ReactElement, {
-          id,
-          'aria-describedby': [descriptionId, errorId].filter(Boolean).join(' ') || undefined,
-          'aria-invalid': error ? 'true' : undefined,
-          'aria-required': required
-        })}
+        {React.isValidElement(children) ? (() => {
+          const enhancement: any = {
+            id,
+            'aria-describedby': [descriptionId, errorId].filter(Boolean).join(' ') || undefined,
+            'aria-invalid': error ? 'true' : undefined,
+            'aria-required': required
+          }
+          return React.cloneElement(children as React.ReactElement<any>, enhancement)
+        })() : children}
       </div>
       
       {error && (
@@ -351,8 +355,8 @@ export function AccessibleProgress({
 }
 
 // Accessible tooltip
-interface AccessibleTooltipProps {
-  children: React.ReactNode
+interface AccessibleTooltipProps<T extends React.ElementType = any> {
+  children: React.ReactElement<any, T>
   content: string
   className?: string
 }
@@ -362,9 +366,10 @@ export function AccessibleTooltip({ children, content, className }: AccessibleTo
 
   return (
     <div className={cn('relative inline-block', className)}>
-      {React.cloneElement(children as React.ReactElement, {
-        'aria-describedby': tooltipId
-      })}
+      {React.isValidElement(children) ? (() => {
+        const enhancement: any = { 'aria-describedby': tooltipId }
+        return React.cloneElement(children as React.ReactElement<any>, enhancement)
+      })() : children}
       <div
         id={tooltipId}
         role="tooltip"

@@ -24,7 +24,7 @@ export async function GET() {
         comments: false
       }
       
-      for (const tableName of Object.keys(tableChecks)) {
+      for (const tableName of Object.keys(tableChecks) as (keyof typeof tableChecks)[]) {
         try {
           const { error } = await supabase
             .from(tableName)

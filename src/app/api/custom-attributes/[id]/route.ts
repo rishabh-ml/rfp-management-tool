@@ -10,13 +10,13 @@ const updateAttributeSchema = z.object({
   is_required: z.boolean().optional(),
   default_value: z.string().optional(),
   options: z.array(z.string()).optional(),
-  validation_rules: z.record(z.any()).optional(),
+  validation_rules: z.record(z.string(), z.any()).optional(),
   display_order: z.number().optional()
 })
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
@@ -24,6 +24,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const validatedData = updateAttributeSchema.parse(body)
 
@@ -52,7 +53,7 @@ export async function PATCH(
         ...validatedData,
         updated_at: new Date().toISOString()
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single()
 
@@ -71,13 +72,15 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const { id } = await params
 
     const supabase = await createClerkSupabaseClient()
 
@@ -101,7 +104,7 @@ export async function DELETE(
     const { data: usageCount } = await supabase
       .from('project_attribute_values')
       .select('id', { count: 'exact' })
-      .eq('attribute_id', params.id)
+      .eq('attribute_id', id)
 
     if (usageCount && usageCount.length > 0) {
       return NextResponse.json({ 
@@ -114,7 +117,7 @@ export async function DELETE(
     const { error: deleteError } = await supabase
       .from('custom_attributes')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (deleteError) {
       console.error('Error deleting custom attribute:', deleteError)
